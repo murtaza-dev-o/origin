@@ -17,6 +17,7 @@ import {
   BRAND_WORDMARK,
   BRAND_TAGLINE,
 } from "@/lib/brand";
+import { prefetchRoute } from "@/lib/route-prefetch";
 
 /* ─── Types ─────────────────────────────────────── */
 type NavItem = {
@@ -322,7 +323,12 @@ export function DashboardLayout({
                 )}
                 <Link
                   href={item.to}
-                  onClick={() => setOpenMobile(false)}
+                  onMouseEnter={() => prefetchRoute(item.to)}
+                  onFocus={() => prefetchRoute(item.to)}
+                  onClick={() => {
+                    prefetchRoute(item.to);
+                    setOpenMobile(false);
+                  }}
                   className="dl-nav-link"
                   style={{
                     display: "flex", alignItems: "center", gap: 10,

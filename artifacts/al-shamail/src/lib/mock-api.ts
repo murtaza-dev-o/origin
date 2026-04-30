@@ -367,6 +367,7 @@ export function useListCourses() {
   return useQuery({
     queryKey: getListCoursesQueryKey(),
     queryFn: async () => apiFetch<{ items: any[] }>("/courses"),
+    placeholderData: (prev) => prev,
   });
 }
 
@@ -378,6 +379,7 @@ export function useGetCourse(
     queryKey: getGetCourseQueryKey(id),
     enabled: opts?.query?.enabled ?? id > 0,
     queryFn: async () => apiFetch<any>(`/courses/${id}`),
+    placeholderData: (prev) => prev,
   });
 }
 
@@ -458,6 +460,7 @@ export function useListMyEnrollments(_opts?: any) {
     queryKey: getListMyEnrollmentsQueryKey(),
     enabled: _opts?.query?.enabled ?? true,
     queryFn: async () => apiFetch<{ items: any[] }>("/me/enrollments"),
+    placeholderData: (prev) => prev,
   });
 }
 
@@ -761,6 +764,7 @@ export function useGetStudentDashboard() {
   return useQuery({
     queryKey: ["dash-student"] as const,
     queryFn: async () => apiFetch<any>("/dashboards/student"),
+    placeholderData: (prev) => prev,
   });
 }
 
@@ -768,6 +772,7 @@ export function useGetTeacherDashboard() {
   return useQuery({
     queryKey: getGetTeacherDashboardQueryKey(),
     queryFn: async () => apiFetch<any>("/dashboards/teacher"),
+    placeholderData: (prev) => prev,
   });
 }
 
@@ -775,5 +780,6 @@ export function useGetAdminDashboard() {
   return useQuery({
     queryKey: ["dash-admin"] as const,
     queryFn: async () => apiFetch<any>("/dashboards/admin"),
+    placeholderData: (prev) => prev,
   });
 }
