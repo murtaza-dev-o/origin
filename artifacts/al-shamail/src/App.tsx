@@ -1,37 +1,38 @@
-import { Component, type ReactNode } from "react";
+import { Component, Suspense, lazy, type ReactNode } from "react";
 import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { B } from "@/lib/brand";
-import Home from "@/pages/Home";
-import Apply from "@/pages/Apply";
-import Login from "@/pages/Login";
-import Admin from "@/pages/Admin";
-import DashboardRedirect from "@/pages/DashboardRedirect";
-import StudentDashboard from "@/pages/StudentDashboard";
-import TeacherDashboard from "@/pages/TeacherDashboard";
-import AdminDashboard from "@/pages/AdminDashboard";
-import AdminApplications from "@/pages/AdminApplications";
-import AdminUsers from "@/pages/AdminUsers";
-import TeacherStudents from "@/pages/TeacherStudents";
-import CoursesPage from "@/pages/CoursesPage";
-import CourseDetail from "@/pages/CourseDetail";
-import LessonView from "@/pages/LessonView";
-import QuizView from "@/pages/QuizView";
-import SchedulePage from "@/pages/SchedulePage";
-import BadgesPage from "@/pages/BadgesPage";
-import LeaderboardPage from "@/pages/LeaderboardPage";
-import ProfilePage from "@/pages/ProfilePage";
-import MessagesPage from "@/pages/MessagesPage";
-import NotFound from "@/pages/not-found";
+const Home = lazy(() => import("@/pages/Home"));
+const Apply = lazy(() => import("@/pages/Apply"));
+const Login = lazy(() => import("@/pages/Login"));
+const Admin = lazy(() => import("@/pages/Admin"));
+const DashboardRedirect = lazy(() => import("@/pages/DashboardRedirect"));
+const StudentDashboard = lazy(() => import("@/pages/StudentDashboard"));
+const TeacherDashboard = lazy(() => import("@/pages/TeacherDashboard"));
+const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
+const AdminApplications = lazy(() => import("@/pages/AdminApplications"));
+const AdminUsers = lazy(() => import("@/pages/AdminUsers"));
+const TeacherStudents = lazy(() => import("@/pages/TeacherStudents"));
+const CoursesPage = lazy(() => import("@/pages/CoursesPage"));
+const CourseDetail = lazy(() => import("@/pages/CourseDetail"));
+const LessonView = lazy(() => import("@/pages/LessonView"));
+const QuizView = lazy(() => import("@/pages/QuizView"));
+const SchedulePage = lazy(() => import("@/pages/SchedulePage"));
+const BadgesPage = lazy(() => import("@/pages/BadgesPage"));
+const LeaderboardPage = lazy(() => import("@/pages/LeaderboardPage"));
+const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
+const MessagesPage = lazy(() => import("@/pages/MessagesPage"));
+const NotFound = lazy(() => import("@/pages/not-found"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
-      staleTime: 30_000,
+      refetchOnMount: false,
+      staleTime: 60_000,
     },
   },
 });
@@ -189,7 +190,9 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-            <Router />
+            <Suspense fallback={null}>
+              <Router />
+            </Suspense>
           </WouterRouter>
           <Toaster />
         </TooltipProvider>

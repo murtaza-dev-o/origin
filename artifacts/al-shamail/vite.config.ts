@@ -46,7 +46,9 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist"),
     emptyOutDir: true,
+    minify: "esbuild",
     sourcemap: false,
+    chunkSizeWarningLimit: 1000,
     cssCodeSplit: true,
     rollupOptions: {
       output: {
