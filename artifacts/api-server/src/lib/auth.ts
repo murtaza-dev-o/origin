@@ -41,10 +41,11 @@ export async function findSessionUser(token: string): Promise<DbUser | null> {
 }
 
 export function setSessionCookie(res: Response, token: string): void {
+  const isProd = process.env.NODE_ENV === "production";
   res.cookie(SESSION_COOKIE, token, {
     httpOnly: true,
-    sameSite: "lax",
-    secure: false, // proxied over Replit's TLS-terminating proxy
+    sameSite: isProd ? "none" : "lax",
+    secure: isProd,
     maxAge: SESSION_TTL_MS,
     path: "/",
   });
