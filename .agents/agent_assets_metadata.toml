@@ -1,0 +1,14 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "DtxwaW2jcGHbCdi7Q0QnX"
+uri = "file://exports/mock-api.ts.txt"
+type = "text"
+title = "mock-api.ts (final source — rename to mock-api.ts)"
+
+[[outputs]]
+id = "MQ3P_Q0_bTfAQ990f3AaH"
+uri = "file://exports/mock-api.tar.gz"
+type = "unspecified"
+title = "mock-api.tar.gz (compressed copy)"

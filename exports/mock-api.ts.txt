@@ -1,0 +1,2241 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  type UseQueryOptions,
+} from "@tanstack/react-query";
+
+/* ──────────────────────────────────────────────────────────────────
+ *  REAL API HELPER (server-backed endpoints)
+ * ────────────────────────────────────────────────────────────────── */
+const API_BASE = "/api";
+
+async function apiFetch<T = any>(
+  path: string,
+  init: RequestInit = {},
+): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      ...(init.headers ?? {}),
+    },
+    ...init,
+  });
+  let body: any = null;
+  const text = await res.text();
+  if (text) {
+    try {
+      body = JSON.parse(text);
+    } catch {
+      body = text;
+    }
+  }
+  if (!res.ok) {
+    const msg = (body && body.error) || res.statusText || "Request failed";
+    throw new Error(msg);
+  }
+  return body as T;
+}
+
+/* ──────────────────────────────────────────────────────────────────
+ *  TYPES
+ * ────────────────────────────────────────────────────────────────── */
+export type Application = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string | null;
+  city?: string | null;
+  role: "student" | "teacher";
+  status: "pending" | "approved" | "rejected";
+  grade?: string | null;
+  school?: string | null;
+  parentName?: string | null;
+  parentPhone?: string | null;
+  department?: string | null;
+  qualification?: string | null;
+  experience?: string | null;
+  subjects?: string | null;
+  createdAt: string;
+};
+
+type User = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: "student" | "teacher" | "admin";
+  isAdmin: boolean;
+  password: string;
+  avatarUrl?: string | null;
+  phone?: string | null;
+  grade?: string | null;
+  department?: string | null;
+  bio?: string | null;
+  xp: number;
+  level: number;
+  streak: number;
+};
+
+type Course = {
+  id: number;
+  title: string;
+  subject: string;
+  level: string;
+  description: string;
+  coverEmoji: string;
+  coverColor: string;
+  teacherId: number;
+  published: boolean;
+  createdAt: string;
+};
+
+type Lesson = {
+  id: number;
+  courseId: number;
+  title: string;
+  kind: "video" | "reading";
+  durationMin: number;
+  videoUrl?: string | null;
+  content?: string | null;
+  order: number;
+};
+
+type Badge = {
+  id: number;
+  name: string;
+  description: string;
+  icon: string;
+  color: string;
+  criteria: "manual" | "xp" | "lessons" | "streak";
+  threshold?: number | null;
+};
+
+type Achievement = {
+  id: number;
+  userId: number;
+  badgeId: number;
+  earnedAt: string;
+};
+
+type Enrollment = {
+  id: number;
+  userId: number;
+  courseId: number;
+  enrolledAt: string;
+};
+
+type LessonProgress = {
+  userId: number;
+  lessonId: number;
+  completedAt: string;
+};
+
+type QuizAttempt = {
+  id: number;
+  userId: number;
+  lessonId: number;
+  score: number;
+  takenAt: string;
+};
+
+type ScheduleEvent = {
+  id: number;
+  title: string;
+  kind: "class" | "exam" | "assembly" | "holiday" | "meeting" | "club";
+  startsAt: string;
+  endsAt?: string | null;
+  location?: string | null;
+  link?: string | null;
+  notes?: string | null;
+  createdBy: number;
+};
+
+type Message = {
+  id: number;
+  fromUserId: number;
+  toUserId: number;
+  body: string;
+  sentAt: string;
+};
+
+type XpEvent = {
+  userId: number;
+  amount: number;
+  reason: string;
+  at: string;
+};
+
+/* ──────────────────────────────────────────────────────────────────
+ *  IN-MEMORY STORE (with localStorage persistence for current user)
+ * ────────────────────────────────────────────────────────────────── */
+
+const SESSION_KEY = "al-shamail-mock-session";
+
+function loadSession(): number | null {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const id = parseInt(raw, 10);
+    return Number.isFinite(id) ? id : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveSession(userId: number | null) {
+  try {
+    if (userId == null) localStorage.removeItem(SESSION_KEY);
+    else localStorage.setItem(SESSION_KEY, String(userId));
+  } catch {
+    /* ignore */
+  }
+}
+
+const todayIso = () => new Date().toISOString();
+const daysAgo = (n: number) => {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d.toISOString();
+};
+const daysFromNow = (n: number, hour = 9, min = 0) => {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  d.setHours(hour, min, 0, 0);
+  return d.toISOString();
+};
+
+/* ─── Users ─── */
+const users: User[] = [
+  {
+    id: 1,
+    firstName: "Hadia",
+    lastName: "Al-Mansouri",
+    email: "admin@alshamail.edu",
+    role: "admin",
+    isAdmin: true,
+    password: "admin123",
+    phone: "+971 50 111 2200",
+    bio: "Headmistress · Al Shamail Academy",
+    avatarUrl: null,
+    xp: 0,
+    level: 1,
+    streak: 0,
+  },
+  {
+    id: 2,
+    firstName: "Omar",
+    lastName: "Bin Saleh",
+    email: "teacher@alshamail.edu",
+    role: "teacher",
+    isAdmin: false,
+    password: "teacher123",
+    department: "Quranic Studies",
+    phone: "+971 50 222 3300",
+    bio: "Quranic studies & Tajwid · 12 years teaching",
+    avatarUrl: null,
+    xp: 0,
+    level: 1,
+    streak: 0,
+  },
+  {
+    id: 3,
+    firstName: "Layla",
+    lastName: "Hashimi",
+    email: "layla.teacher@alshamail.edu",
+    role: "teacher",
+    isAdmin: false,
+    password: "teacher123",
+    department: "Mathematics",
+    phone: "+971 50 333 4400",
+    bio: "Mathematics teacher · loves real-world problems",
+    avatarUrl: null,
+    xp: 0,
+    level: 1,
+    streak: 0,
+  },
+  {
+    id: 4,
+    firstName: "Yusuf",
+    lastName: "Rahman",
+    email: "yusuf.teacher@alshamail.edu",
+    role: "teacher",
+    isAdmin: false,
+    password: "teacher123",
+    department: "Science",
+    phone: "+971 50 444 5500",
+    bio: "Science enthusiast · physics & biology",
+    avatarUrl: null,
+    xp: 0,
+    level: 1,
+    streak: 0,
+  },
+  {
+    id: 5,
+    firstName: "Aisha",
+    lastName: "Khan",
+    email: "student@alshamail.edu",
+    role: "student",
+    isAdmin: false,
+    password: "student123",
+    grade: "Year 6",
+    phone: null,
+    avatarUrl: null,
+    xp: 4250,
+    level: 8,
+    streak: 14,
+  },
+  {
+    id: 6,
+    firstName: "Bilal",
+    lastName: "Ahmed",
+    email: "bilal@example.com",
+    role: "student",
+    isAdmin: false,
+    password: "student123",
+    grade: "Year 5",
+    avatarUrl: null,
+    xp: 3680,
+    level: 7,
+    streak: 9,
+  },
+  {
+    id: 7,
+    firstName: "Zara",
+    lastName: "Iqbal",
+    email: "zara@example.com",
+    role: "student",
+    isAdmin: false,
+    password: "student123",
+    grade: "Year 6",
+    avatarUrl: null,
+    xp: 3120,
+    level: 6,
+    streak: 21,
+  },
+  {
+    id: 8,
+    firstName: "Hamza",
+    lastName: "Siddiqui",
+    email: "hamza@example.com",
+    role: "student",
+    isAdmin: false,
+    password: "student123",
+    grade: "Year 7",
+    avatarUrl: null,
+    xp: 2840,
+    level: 6,
+    streak: 5,
+  },
+  {
+    id: 9,
+    firstName: "Mariam",
+    lastName: "Hussain",
+    email: "mariam@example.com",
+    role: "student",
+    isAdmin: false,
+    password: "student123",
+    grade: "Year 5",
+    avatarUrl: null,
+    xp: 2410,
+    level: 5,
+    streak: 11,
+  },
+  {
+    id: 10,
+    firstName: "Idris",
+    lastName: "Mahmood",
+    email: "idris@example.com",
+    role: "student",
+    isAdmin: false,
+    password: "student123",
+    grade: "Year 7",
+    avatarUrl: null,
+    xp: 2100,
+    level: 5,
+    streak: 3,
+  },
+  {
+    id: 11,
+    firstName: "Safiya",
+    lastName: "Abdul",
+    email: "safiya@example.com",
+    role: "student",
+    isAdmin: false,
+    password: "student123",
+    grade: "Year 6",
+    avatarUrl: null,
+    xp: 1820,
+    level: 4,
+    streak: 7,
+  },
+  {
+    id: 12,
+    firstName: "Tariq",
+    lastName: "Yusufzai",
+    email: "tariq@example.com",
+    role: "student",
+    isAdmin: false,
+    password: "student123",
+    grade: "Year 8",
+    avatarUrl: null,
+    xp: 1540,
+    level: 4,
+    streak: 1,
+  },
+  {
+    id: 13,
+    firstName: "Nadia",
+    lastName: "Farooqi",
+    email: "nadia@example.com",
+    role: "student",
+    isAdmin: false,
+    password: "student123",
+    grade: "Year 5",
+    avatarUrl: null,
+    xp: 1320,
+    level: 3,
+    streak: 4,
+  },
+  {
+    id: 14,
+    firstName: "Khalid",
+    lastName: "Ansari",
+    email: "khalid@example.com",
+    role: "student",
+    isAdmin: false,
+    password: "student123",
+    grade: "Year 8",
+    avatarUrl: null,
+    xp: 1080,
+    level: 3,
+    streak: 0,
+  },
+  {
+    id: 15,
+    firstName: "Ruqayya",
+    lastName: "Bakr",
+    email: "ruqayya@example.com",
+    role: "student",
+    isAdmin: false,
+    password: "student123",
+    grade: "Year 7",
+    avatarUrl: null,
+    xp: 870,
+    level: 2,
+    streak: 2,
+  },
+  {
+    id: 16,
+    firstName: "Imran",
+    lastName: "Daud",
+    email: "imran@example.com",
+    role: "student",
+    isAdmin: false,
+    password: "student123",
+    grade: "Year 6",
+    avatarUrl: null,
+    xp: 640,
+    level: 2,
+    streak: 6,
+  },
+];
+
+/* ─── Applications ─── */
+const applications: Application[] = [
+  {
+    id: 1,
+    firstName: "Sara",
+    lastName: "Mahmoud",
+    email: "sara.m@example.com",
+    phone: "+971 50 990 1122",
+    city: "Dubai",
+    role: "student",
+    status: "pending",
+    grade: "Year 5",
+    school: "Crescent International",
+    parentName: "Mahmoud Idris",
+    parentPhone: "+971 50 990 1100",
+    createdAt: daysAgo(1),
+  },
+  {
+    id: 2,
+    firstName: "Ali",
+    lastName: "Rashid",
+    email: "ali.r@example.com",
+    phone: "+971 50 778 8821",
+    city: "Sharjah",
+    role: "student",
+    status: "pending",
+    grade: "Year 7",
+    school: "Al Noor Academy",
+    parentName: "Rashid Ali",
+    parentPhone: "+971 50 778 8800",
+    createdAt: daysAgo(2),
+  },
+  {
+    id: 3,
+    firstName: "Fatima",
+    lastName: "Saeed",
+    email: "fatima.s@example.com",
+    phone: "+971 55 111 2233",
+    city: "Abu Dhabi",
+    role: "teacher",
+    status: "pending",
+    department: "English Literature",
+    qualification: "MA English, University of Manchester",
+    experience: "8 years secondary teaching",
+    subjects: "English, Literature, Creative Writing",
+    createdAt: daysAgo(3),
+  },
+  {
+    id: 4,
+    firstName: "Hassan",
+    lastName: "Bilal",
+    email: "hassan.b@example.com",
+    phone: "+971 50 444 7788",
+    city: "Dubai",
+    role: "student",
+    status: "approved",
+    grade: "Year 6",
+    school: "Garden Hill School",
+    parentName: "Bilal Hassan",
+    parentPhone: "+971 50 444 7700",
+    createdAt: daysAgo(5),
+  },
+  {
+    id: 5,
+    firstName: "Noor",
+    lastName: "Jaffar",
+    email: "noor.j@example.com",
+    phone: "+971 56 333 9911",
+    city: "Dubai",
+    role: "student",
+    status: "rejected",
+    grade: "Year 4",
+    school: "Sunrise International",
+    parentName: "Jaffar Hussain",
+    parentPhone: "+971 56 333 9900",
+    createdAt: daysAgo(7),
+  },
+  {
+    id: 6,
+    firstName: "Zaid",
+    lastName: "Karim",
+    email: "zaid.k@example.com",
+    phone: "+971 50 222 1144",
+    city: "Ajman",
+    role: "student",
+    status: "pending",
+    grade: "Year 8",
+    school: "Pearl Academy",
+    parentName: "Karim Zaid",
+    parentPhone: "+971 50 222 1100",
+    createdAt: daysAgo(0),
+  },
+];
+
+/* ─── Courses ─── */
+const courses: Course[] = [
+  {
+    id: 1,
+    title: "General Biology",
+    subject: "Biology",
+    level: "Introductory",
+    description:
+      "An overview of living systems — cells, ecosystems, and the web of life. Add your own topics and lessons to shape this course.",
+    coverEmoji: "🧬",
+    coverColor: "#166534",
+    teacherId: 2,
+    published: true,
+    createdAt: daysAgo(30),
+  },
+  {
+    id: 2,
+    title: "General Chemistry",
+    subject: "Chemistry",
+    level: "Introductory",
+    description:
+      "The building blocks of matter, reactions, and everyday chemistry. Topics and lessons to be added.",
+    coverEmoji: "⚗️",
+    coverColor: "#7C3AED",
+    teacherId: 2,
+    published: true,
+    createdAt: daysAgo(20),
+  },
+  {
+    id: 3,
+    title: "General Physics",
+    subject: "Physics",
+    level: "Introductory",
+    description:
+      "Motion, energy, and the forces that shape our universe. Topics and lessons to be added.",
+    coverEmoji: "🔭",
+    coverColor: "#1F3A5F",
+    teacherId: 2,
+    published: true,
+    createdAt: daysAgo(10),
+  },
+];
+
+/* ─── Lessons ─── */
+const lessons: Lesson[] = [];
+
+/* ─── Quizzes (one per first reading lesson of each course, demo) ─── */
+type Quiz = {
+  lessonId: number;
+  questions: Array<{
+    id: number;
+    text: string;
+    choices: string[];
+    correct: number; // index
+  }>;
+};
+const quizzes: Quiz[] = [];
+
+/* ─── Badges ─── */
+const badges: Badge[] = [
+  {
+    id: 1,
+    name: "First Steps",
+    description: "Completed your very first lesson.",
+    icon: "🌱",
+    color: "#16A34A",
+    criteria: "lessons",
+    threshold: 1,
+  },
+  {
+    id: 2,
+    name: "Bookworm",
+    description: "Completed 10 lessons across the academy.",
+    icon: "📚",
+    color: "#7C3AED",
+    criteria: "lessons",
+    threshold: 10,
+  },
+  {
+    id: 3,
+    name: "Streak Master",
+    description: "Maintained a 7-day learning streak.",
+    icon: "🔥",
+    color: "#DC2626",
+    criteria: "streak",
+    threshold: 7,
+  },
+  {
+    id: 4,
+    name: "Scholar",
+    description: "Reached 2,000 XP.",
+    icon: "🎓",
+    color: "#1F3A5F",
+    criteria: "xp",
+    threshold: 2000,
+  },
+  {
+    id: 5,
+    name: "Star Pupil",
+    description: "Awarded by your teacher for outstanding work.",
+    icon: "⭐",
+    color: "#C9A84C",
+    criteria: "manual",
+    threshold: null,
+  },
+  {
+    id: 6,
+    name: "Quiz Champion",
+    description: "Scored 100% on three quizzes.",
+    icon: "🏆",
+    color: "#0EA5E9",
+    criteria: "manual",
+    threshold: null,
+  },
+];
+
+const achievements: Achievement[] = [];
+
+/* ─── Enrollments ─── */
+const enrollments: Enrollment[] = [];
+
+/* ─── Lesson progress ─── */
+const lessonProgress: LessonProgress[] = [];
+
+/* ─── Quiz attempts ─── */
+const quizAttempts: QuizAttempt[] = [];
+
+/* ─── Schedule events ─── */
+const scheduleEvents: ScheduleEvent[] = [
+  {
+    id: 1,
+    title: "Quranic Studies — Live Class",
+    kind: "class",
+    startsAt: daysFromNow(0, 16, 0),
+    endsAt: daysFromNow(0, 17, 0),
+    location: "Online · Zoom",
+    link: "https://zoom.us/j/example",
+    createdBy: 2,
+  },
+  {
+    id: 2,
+    title: "Maths Worksheet Due",
+    kind: "exam",
+    startsAt: daysFromNow(1, 9, 0),
+    location: "Submit on portal",
+    createdBy: 3,
+  },
+  {
+    id: 3,
+    title: "Friday Assembly",
+    kind: "assembly",
+    startsAt: daysFromNow(2, 8, 30),
+    endsAt: daysFromNow(2, 9, 15),
+    location: "Main Hall",
+    createdBy: 1,
+  },
+  {
+    id: 4,
+    title: "Science Lab — Forces Experiment",
+    kind: "class",
+    startsAt: daysFromNow(3, 11, 0),
+    endsAt: daysFromNow(3, 12, 0),
+    location: "Science Block 2",
+    createdBy: 4,
+  },
+  {
+    id: 5,
+    title: "Mid-term Break",
+    kind: "holiday",
+    startsAt: daysFromNow(7, 0, 0),
+    endsAt: daysFromNow(11, 23, 59),
+    notes: "School closed.",
+    createdBy: 1,
+  },
+  {
+    id: 6,
+    title: "Parent–Teacher Meeting",
+    kind: "meeting",
+    startsAt: daysFromNow(5, 14, 0),
+    endsAt: daysFromNow(5, 17, 0),
+    location: "Main Office",
+    createdBy: 1,
+  },
+  {
+    id: 7,
+    title: "Calligraphy Club",
+    kind: "club",
+    startsAt: daysFromNow(4, 15, 30),
+    endsAt: daysFromNow(4, 16, 30),
+    location: "Art Room",
+    createdBy: 3,
+  },
+];
+
+/* ─── Messages ─── */
+const messages: Message[] = [
+  {
+    id: 1,
+    fromUserId: 2,
+    toUserId: 5,
+    body: "Salaam Aisha — wonderful work on Surah Al-Fatiha. Keep going.",
+    sentAt: daysAgo(3),
+  },
+  {
+    id: 2,
+    fromUserId: 5,
+    toUserId: 2,
+    body: "Thank you, ustadh! I'll start the next lesson tonight.",
+    sentAt: daysAgo(3),
+  },
+  {
+    id: 3,
+    fromUserId: 3,
+    toUserId: 5,
+    body: "Reminder: maths worksheet due tomorrow.",
+    sentAt: daysAgo(1),
+  },
+  {
+    id: 4,
+    fromUserId: 1,
+    toUserId: 2,
+    body: "Could you share next week's Quranic studies plan?",
+    sentAt: daysAgo(2),
+  },
+  {
+    id: 5,
+    fromUserId: 2,
+    toUserId: 1,
+    body: "Of course — sending the brief by tomorrow morning.",
+    sentAt: daysAgo(2),
+  },
+];
+
+/* ─── XP events (drives the 'XP last 14 days' chart) ─── */
+const xpEvents: XpEvent[] = [];
+(function seedXp() {
+  // Build a deterministic 30-day distribution per student.
+  const studs = users.filter((u) => u.role === "student");
+  for (const s of studs) {
+    const base = Math.max(20, Math.floor(s.xp / 30));
+    for (let d = 0; d < 30; d++) {
+      const noise = ((s.id * 7 + d * 3) % 11) - 4;
+      const amt = Math.max(0, base + noise * 5);
+      if (amt > 0) {
+        xpEvents.push({
+          userId: s.id,
+          amount: amt,
+          reason: "Daily activity",
+          at: daysAgo(d),
+        });
+      }
+    }
+  }
+})();
+
+/* ──────────────────────────────────────────────────────────────────
+ *  ID GENERATION
+ * ────────────────────────────────────────────────────────────────── */
+let nextUserId = 100;
+let nextAppId = 100;
+let nextCourseId = 100;
+let nextLessonId = 100;
+let nextBadgeId = 100;
+let nextAchievementId = 100;
+let nextEnrollmentId = 100;
+let nextEventId = 100;
+let nextMessageId = 1000;
+let nextQuizAttemptId = 1000;
+
+/* ──────────────────────────────────────────────────────────────────
+ *  LOCAL PERSISTENCE
+ *  Persists course/lesson/quiz/progress/schedule/message data to
+ *  localStorage so changes survive a page refresh. (Auth, applications
+ *  and user records persist via the real API server.)
+ * ────────────────────────────────────────────────────────────────── */
+const STORE_KEY = "al-shamail-mock-store-v1";
+
+function replaceArray<T>(target: T[], next: T[] | undefined) {
+  if (!Array.isArray(next)) return;
+  target.splice(0, target.length, ...next);
+}
+
+function loadStore() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    replaceArray(courses, data.courses);
+    replaceArray(lessons, data.lessons);
+    replaceArray(quizzes, data.quizzes);
+    replaceArray(badges, data.badges);
+    replaceArray(achievements, data.achievements);
+    replaceArray(enrollments, data.enrollments);
+    replaceArray(lessonProgress, data.lessonProgress);
+    replaceArray(quizAttempts, data.quizAttempts);
+    replaceArray(scheduleEvents, data.scheduleEvents);
+    replaceArray(messages, data.messages);
+    replaceArray(xpEvents, data.xpEvents);
+    if (typeof data.nextCourseId === "number") nextCourseId = data.nextCourseId;
+    if (typeof data.nextLessonId === "number") nextLessonId = data.nextLessonId;
+    if (typeof data.nextBadgeId === "number") nextBadgeId = data.nextBadgeId;
+    if (typeof data.nextAchievementId === "number") nextAchievementId = data.nextAchievementId;
+    if (typeof data.nextEnrollmentId === "number") nextEnrollmentId = data.nextEnrollmentId;
+    if (typeof data.nextEventId === "number") nextEventId = data.nextEventId;
+    if (typeof data.nextMessageId === "number") nextMessageId = data.nextMessageId;
+    if (typeof data.nextQuizAttemptId === "number") nextQuizAttemptId = data.nextQuizAttemptId;
+  } catch {
+    /* ignore */
+  }
+}
+
+let lastSnapshot = "";
+function flushPersist() {
+  try {
+    const snapshot = JSON.stringify({
+      courses,
+      lessons,
+      quizzes,
+      badges,
+      achievements,
+      enrollments,
+      lessonProgress,
+      quizAttempts,
+      scheduleEvents,
+      messages,
+      xpEvents,
+      nextCourseId,
+      nextLessonId,
+      nextBadgeId,
+      nextAchievementId,
+      nextEnrollmentId,
+      nextEventId,
+      nextMessageId,
+      nextQuizAttemptId,
+    });
+    if (snapshot === lastSnapshot) return;
+    lastSnapshot = snapshot;
+    localStorage.setItem(STORE_KEY, snapshot);
+  } catch {
+    /* ignore — quota or unavailable */
+  }
+}
+
+if (typeof window !== "undefined") {
+  loadStore();
+  setInterval(flushPersist, 500);
+  window.addEventListener("beforeunload", flushPersist);
+  window.addEventListener("pagehide", flushPersist);
+}
+
+/* ──────────────────────────────────────────────────────────────────
+ *  HELPERS
+ * ────────────────────────────────────────────────────────────────── */
+function levelForXp(xp: number): { level: number; currentLevelXp: number; nextLevelXp: number } {
+  // Simple curve: each level needs 500 + 100 * level XP.
+  let level = 1;
+  let need = 500;
+  let acc = 0;
+  while (xp >= acc + need) {
+    acc += need;
+    level += 1;
+    need = 500 + level * 100;
+  }
+  return { level, currentLevelXp: acc, nextLevelXp: acc + need };
+}
+
+function findUser(id: number | undefined | null): User | undefined {
+  if (id == null) return undefined;
+  return users.find((u) => u.id === id);
+}
+
+function publicUser(u: User) {
+  const { password: _pw, ...rest } = u;
+  return rest;
+}
+
+function delay<T>(value: T, ms = 120): Promise<T> {
+  return new Promise((res) => setTimeout(() => res(value), ms));
+}
+
+/* ──────────────────────────────────────────────────────────────────
+ *  QUERY KEYS
+ * ────────────────────────────────────────────────────────────────── */
+export const getGetCurrentUserQueryKey = () => ["currentUser"] as const;
+export const getListUsersQueryKey = (params?: { role?: string }) =>
+  ["users", params ?? {}] as const;
+export const getListApplicationsQueryKey = () => ["applications"] as const;
+export const getListCoursesQueryKey = () => ["courses"] as const;
+export const getGetCourseQueryKey = (id: number) => ["course", id] as const;
+export const getListMyEnrollmentsQueryKey = () => ["my-enrollments"] as const;
+export const getGetLessonQueryKey = (id: number) => ["lesson", id] as const;
+export const getGetTeacherDashboardQueryKey = () => ["teacher-dashboard"] as const;
+export const getGetMyProfileQueryKey = () => ["my-profile"] as const;
+export const getListBadgesQueryKey = () => ["badges"] as const;
+export const getListMessageContactsQueryKey = () => ["message-contacts"] as const;
+export const getGetConversationQueryKey = (userId: number) =>
+  ["conversation", userId] as const;
+export const getListScheduleEventsQueryKey = () => ["schedule-events"] as const;
+
+/* ──────────────────────────────────────────────────────────────────
+ *  AUTH
+ * ────────────────────────────────────────────────────────────────── */
+function persistMyProgress(u: User): void {
+  // Fire-and-forget; persist xp/level/streak to the server. Errors are non-fatal.
+  apiFetch("/users/me/progress", {
+    method: "PATCH",
+    body: JSON.stringify({ xp: u.xp, level: u.level, streak: u.streak }),
+  }).catch(() => {
+    /* ignore */
+  });
+}
+
+function syncLocalUserFromServer(serverUser: any): void {
+  if (!serverUser) return;
+  const local = findUser(serverUser.id);
+  if (local) {
+    local.firstName = serverUser.firstName ?? local.firstName;
+    local.lastName = serverUser.lastName ?? local.lastName;
+    local.email = serverUser.email ?? local.email;
+    local.role = serverUser.role ?? local.role;
+    local.isAdmin = serverUser.isAdmin ?? local.isAdmin;
+    local.phone = serverUser.phone ?? local.phone;
+    local.bio = serverUser.bio ?? local.bio;
+    local.department = serverUser.department ?? local.department;
+    local.grade = serverUser.grade ?? local.grade;
+    local.avatarUrl = serverUser.avatarUrl ?? local.avatarUrl;
+    if (typeof serverUser.xp === "number") local.xp = serverUser.xp;
+    if (typeof serverUser.level === "number") local.level = serverUser.level;
+    if (typeof serverUser.streak === "number") local.streak = serverUser.streak;
+  } else {
+    // Append a new in-memory record so the rest of the app can read it
+    users.push({
+      id: serverUser.id,
+      firstName: serverUser.firstName ?? "",
+      lastName: serverUser.lastName ?? "",
+      email: serverUser.email ?? "",
+      role: serverUser.role ?? "student",
+      isAdmin: !!serverUser.isAdmin,
+      password: "",
+      avatarUrl: serverUser.avatarUrl ?? null,
+      phone: serverUser.phone ?? null,
+      grade: serverUser.grade ?? null,
+      department: serverUser.department ?? null,
+      bio: serverUser.bio ?? null,
+      xp: serverUser.xp ?? 0,
+      level: serverUser.level ?? 1,
+      streak: serverUser.streak ?? 0,
+    });
+  }
+  saveSession(serverUser.id);
+}
+
+export function useGetCurrentUser() {
+  return useQuery({
+    queryKey: getGetCurrentUserQueryKey(),
+    queryFn: async () => {
+      try {
+        const res = await apiFetch<{ user: any }>("/auth/me");
+        syncLocalUserFromServer(res.user);
+        return { user: res.user };
+      } catch {
+        // Not authenticated
+        saveSession(null);
+        return { user: null };
+      }
+    },
+    staleTime: 0,
+  });
+}
+
+export function useLogin() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: { data: { email: string; password: string } }) => {
+      const res = await apiFetch<{ user: any }>("/auth/login", {
+        method: "POST",
+        body: JSON.stringify(vars.data),
+      });
+      syncLocalUserFromServer(res.user);
+      return { user: res.user };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: getGetCurrentUserQueryKey() });
+    },
+  });
+}
+
+export function useLogout() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      await apiFetch("/auth/logout", { method: "POST" });
+      saveSession(null);
+      return { ok: true };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: getGetCurrentUserQueryKey() });
+    },
+  });
+}
+
+export function useCreateApplication() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: { data: any }) => {
+      const d = vars.data ?? {};
+      const payload = {
+        firstName: d.firstName ?? "",
+        lastName: d.lastName ?? "",
+        email: d.email ?? "",
+        phone: d.phone ?? null,
+        grade: d.grade ?? d.role ?? "Year 6",
+        parentName: d.parentName ?? null,
+        parentPhone: d.parentPhone ?? null,
+        notes:
+          d.notes ??
+          [d.school && `School: ${d.school}`, d.subjects && `Subjects: ${d.subjects}`, d.experience && `Experience: ${d.experience}`]
+            .filter(Boolean)
+            .join(" · ") ??
+          null,
+      };
+      const res = await apiFetch<{ application: any }>("/applications", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      return res.application;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: getListApplicationsQueryKey() });
+    },
+  });
+}
+
+/* ──────────────────────────────────────────────────────────────────
+ *  USERS
+ * ────────────────────────────────────────────────────────────────── */
+export function useListUsers(
+  params: { role?: "student" | "teacher" | "admin" } = {},
+  _opts?: any,
+) {
+  return useQuery({
+    queryKey: getListUsersQueryKey(params),
+    enabled: _opts?.query?.enabled ?? true,
+    queryFn: async () => {
+      const items = users
+        .filter((u) => (params.role ? u.role === params.role : true))
+        .map((u) => {
+          const enrCount = enrollments.filter((e) => e.userId === u.id).length;
+          const lessonCount = lessonProgress.filter((p) => p.userId === u.id).length;
+          const attempts = quizAttempts.filter((a) => a.userId === u.id);
+          const quizAvg = attempts.length
+            ? Math.round(attempts.reduce((s, a) => s + a.score, 0) / attempts.length)
+            : null;
+          const badgeCount = achievements.filter((a) => a.userId === u.id).length;
+          return {
+            ...publicUser(u),
+            enrollmentCount: enrCount,
+            lessonCount,
+            quizAvg,
+            badgeCount,
+          };
+        })
+        .sort((a, b) => b.xp - a.xp);
+      return delay({ items });
+    },
+  });
+}
+
+export function useDeleteUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: { userId: number }) => {
+      const idx = users.findIndex((u) => u.id === vars.userId);
+      if (idx < 0) throw new Error("User not found.");
+      users.splice(idx, 1);
+      // Cascade
+      for (let i = enrollments.length - 1; i >= 0; i--)
+        if (enrollments[i].userId === vars.userId) enrollments.splice(i, 1);
+      for (let i = lessonProgress.length - 1; i >= 0; i--)
+        if (lessonProgress[i].userId === vars.userId) lessonProgress.splice(i, 1);
+      for (let i = achievements.length - 1; i >= 0; i--)
+        if (achievements[i].userId === vars.userId) achievements.splice(i, 1);
+      for (let i = quizAttempts.length - 1; i >= 0; i--)
+        if (quizAttempts[i].userId === vars.userId) quizAttempts.splice(i, 1);
+      for (let i = messages.length - 1; i >= 0; i--)
+        if (
+          messages[i].fromUserId === vars.userId ||
+          messages[i].toUserId === vars.userId
+        )
+          messages.splice(i, 1);
+      for (let i = xpEvents.length - 1; i >= 0; i--)
+        if (xpEvents[i].userId === vars.userId) xpEvents.splice(i, 1);
+      await delay(null, 200);
+      return { ok: true };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: getListUsersQueryKey() });
+    },
+  });
+}
+
+export function useAwardXpToUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: { userId: number; data: { amount: number; reason: string } }) => {
+      const u = findUser(vars.userId);
+      if (!u) throw new Error("User not found.");
+      u.xp += vars.data.amount;
+      const lvl = levelForXp(u.xp);
+      u.level = lvl.level;
+      xpEvents.push({
+        userId: vars.userId,
+        amount: vars.data.amount,
+        reason: vars.data.reason,
+        at: todayIso(),
+      });
+      await delay(null, 150);
+      return { user: publicUser(u) };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: getListUsersQueryKey() });
+      qc.invalidateQueries({ queryKey: getGetCurrentUserQueryKey() });
+    },
+  });
+}
+
+export function useAwardBadgeToUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: { userId: number; data: { badgeId: number } }) => {
+      const exists = achievements.find(
+        (a) => a.userId === vars.userId && a.badgeId === vars.data.badgeId,
+      );
+      if (!exists) {
+        achievements.push({
+          id: nextAchievementId++,
+          userId: vars.userId,
+          badgeId: vars.data.badgeId,
+          earnedAt: todayIso(),
+        });
+      }
+      await delay(null, 150);
+      return { ok: true };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: getListUsersQueryKey() });
+    },
+  });
+}
+
+export function useAwardAchievementToUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: any) => {
+      // Accept either {data:{badgeId}} or {data:{title,description,kind}}
+      const badgeId: number | undefined = vars?.data?.badgeId;
+      if (badgeId != null) {
+        if (
+          !achievements.some(
+            (a) => a.userId === vars.userId && a.badgeId === badgeId,
+          )
+        ) {
+          achievements.push({
+            id: nextAchievementId++,
+            userId: vars.userId,
+            badgeId,
+            earnedAt: todayIso(),
+          });
+        }
+      } else {
+        // Free-form achievement → create a one-off badge
+        const b: Badge = {
+          id: nextBadgeId++,
+          name: vars?.data?.title ?? "Achievement",
+          description: vars?.data?.description ?? "",
+          icon: vars?.data?.kind === "milestone" ? "🏅" : "⭐",
+          color: "#C9A84C",
+          criteria: "manual",
+          threshold: null,
+        };
+        badges.push(b);
+        achievements.push({
+          id: nextAchievementId++,
+          userId: vars.userId,
+          badgeId: b.id,
+          earnedAt: todayIso(),
+        });
+      }
+      await delay(null, 150);
+      return { ok: true };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: getListUsersQueryKey() });
+      qc.invalidateQueries({ queryKey: getListBadgesQueryKey() });
+    },
+  });
+}
+
+/* ──────────────────────────────────────────────────────────────────
+ *  APPLICATIONS
+ * ────────────────────────────────────────────────────────────────── */
+function normalizeServerApplication(a: any): Application {
+  return {
+    id: a.id,
+    firstName: a.firstName,
+    lastName: a.lastName,
+    email: a.email,
+    phone: a.phone ?? null,
+    city: null,
+    role: "student",
+    status: a.status ?? "pending",
+    grade: a.grade ?? null,
+    school: null,
+    parentName: a.parentName ?? null,
+    parentPhone: a.parentPhone ?? null,
+    department: null,
+    qualification: null,
+    experience: null,
+    subjects: null,
+    createdAt: a.createdAt ?? todayIso(),
+  };
+}
+
+export function useListApplications(opts?: any) {
+  return useQuery({
+    queryKey: getListApplicationsQueryKey(),
+    enabled: opts?.query?.enabled ?? true,
+    queryFn: async () => {
+      const res = await apiFetch<{ applications: any[] }>("/applications");
+      return { items: res.applications.map(normalizeServerApplication) };
+    },
+  });
+}
+
+export function useApproveApplication() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: { id: number }) => {
+      await apiFetch(`/applications/${vars.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ status: "approved" }),
+      });
+      return { ok: true };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: getListApplicationsQueryKey() });
+      qc.invalidateQueries({ queryKey: getListUsersQueryKey() });
+    },
+  });
+}
+
+/* ──────────────────────────────────────────────────────────────────
+ *  COURSES & LESSONS
+ * ────────────────────────────────────────────────────────────────── */
+function shapeCourse(c: Course) {
+  const teacher = findUser(c.teacherId);
+  const courseLessons = lessons.filter((l) => l.courseId === c.id);
+  const enrolledCount = enrollments.filter((e) => e.courseId === c.id).length;
+  return {
+    ...c,
+    lessonCount: courseLessons.length,
+    enrolledCount,
+    teacherName: teacher ? `${teacher.firstName} ${teacher.lastName}` : "Staff",
+  };
+}
+
+export function useListCourses() {
+  return useQuery({
+    queryKey: getListCoursesQueryKey(),
+    queryFn: async () => delay({ items: courses.map(shapeCourse) }),
+  });
+}
+
+export function useGetCourse(
+  id: number,
+  opts?: { query?: { enabled?: boolean } },
+) {
+  return useQuery({
+    queryKey: getGetCourseQueryKey(id),
+    enabled: opts?.query?.enabled ?? id > 0,
+    queryFn: async () => {
+      const c = courses.find((x) => x.id === id);
+      if (!c) return delay({ course: null, lessons: [], enrolled: false, completedLessonIds: [], progress: 0 });
+      const userId = loadSession();
+      const courseLessons = lessons
+        .filter((l) => l.courseId === id)
+        .sort((a, b) => a.order - b.order);
+      const enrolled =
+        userId != null && enrollments.some((e) => e.userId === userId && e.courseId === id);
+      const completedLessonIds = courseLessons
+        .filter((l) => userId != null && lessonProgress.some((p) => p.userId === userId && p.lessonId === l.id))
+        .map((l) => l.id);
+      const progress =
+        courseLessons.length > 0
+          ? Math.round((completedLessonIds.length / courseLessons.length) * 100)
+          : 0;
+      return delay({
+        course: shapeCourse(c),
+        lessons: courseLessons,
+        enrolled,
+        completedLessonIds,
+        progress,
+      });
+    },
+  });
+}
+
+export function useCreateCourse() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: { data: any }) => {
+      const userId = loadSession();
+      const c: Course = {
+        id: nextCourseId++,
+        title: vars.data.title,
+        subject: vars.data.subject,
+        level: vars.data.level ?? "Year 5",
+        description: vars.data.description ?? "",
+        coverEmoji: vars.data.coverEmoji ?? "📘",
+        coverColor: vars.data.coverColor ?? "#1B2B5E",
+        teacherId: userId ?? 2,
+        published: !!vars.data.published,
+        createdAt: todayIso(),
+      };
+      courses.push(c);
+      await delay(null, 200);
+      return c;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: getListCoursesQueryKey() });
+      qc.invalidateQueries({ queryKey: getGetTeacherDashboardQueryKey() });
+    },
+  });
+}
+
+export function useUpdateCourse() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: { id: number; data: any }) => {
+      const c = courses.find((x) => x.id === vars.id);
+      if (!c) throw new Error("Course not found.");
+      Object.assign(c, vars.data);
+      await delay(null, 150);
+      return c;
+    },
+    onSuccess: (_d, v) => {
+      qc.invalidateQueries({ queryKey: getGetCourseQueryKey(v.id) });
+      qc.invalidateQueries({ queryKey: getListCoursesQueryKey() });
+    },
+  });
+}
+
+export function useImportCourses() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (_vars: any) => {
+      await delay(null, 300);
+      return { imported: 0 };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: getListCoursesQueryKey() });
+    },
+  });
+}
+
+export function useEnrollInCourse() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: any) => {
+      const userId = loadSession();
+      if (userId == null) throw new Error("Not signed in.");
+      const courseId: number = vars?.courseId ?? vars?.id;
+      if (!enrollments.some((e) => e.userId === userId && e.courseId === courseId)) {
+        enrollments.push({
+          id: nextEnrollmentId++,
+          userId,
+          courseId,
+          enrolledAt: todayIso(),
+        });
+      }
+      await delay(null, 200);
+      return { ok: true, courseId };
+    },
+    onSuccess: (d) => {
+      qc.invalidateQueries({ queryKey: getListCoursesQueryKey() });
+      qc.invalidateQueries({ queryKey: getGetCourseQueryKey(d.courseId) });
+      qc.invalidateQueries({ queryKey: getListMyEnrollmentsQueryKey() });
+    },
+  });
+}
+
+export function useListMyEnrollments(_opts?: any) {
+  return useQuery({
+    queryKey: getListMyEnrollmentsQueryKey(),
+    enabled: _opts?.query?.enabled ?? true,
+    queryFn: async () => {
+      const userId = loadSession();
+      if (userId == null) return delay({ items: [] });
+      const items = enrollments
+        .filter((e) => e.userId === userId)
+        .map((e) => {
+          const course = courses.find((c) => c.id === e.courseId)!;
+          const courseLessons = lessons.filter((l) => l.courseId === course.id);
+          const completed = courseLessons.filter((l) =>
+            lessonProgress.some((p) => p.userId === userId && p.lessonId === l.id),
+          );
+          const progress =
+            courseLessons.length > 0
+              ? Math.round((completed.length / courseLessons.length) * 100)
+              : 0;
+          return {
+            id: e.id,
+            userId: e.userId,
+            courseId: e.courseId,
+            course: shapeCourse(course),
+            totalLessonCount: courseLessons.length,
+            completedLessonCount: completed.length,
+            progress,
+          };
+        });
+      return delay({ items });
+    },
+  });
+}
+
+export function useGetLesson(id: number, opts?: any) {
+  return useQuery({
+    queryKey: getGetLessonQueryKey(id),
+    enabled: opts?.query?.enabled ?? id > 0,
+    queryFn: async () => {
+      const l = lessons.find((x) => x.id === id);
+      if (!l) return delay(null);
+      const course = courses.find((c) => c.id === l.courseId);
+      const siblings = lessons
+        .filter((x) => x.courseId === l.courseId)
+        .sort((a, b) => a.order - b.order);
+      const idx = siblings.findIndex((x) => x.id === l.id);
+      const userId = loadSession();
+      const completed =
+        userId != null && lessonProgress.some((p) => p.userId === userId && p.lessonId === l.id);
+      const hasQuiz = quizzes.some((q) => q.lessonId === l.id);
+      // Flat shape so callers can do `lesson.title`, `lesson.courseId`, etc.
+      return delay({
+        ...l,
+        durationMinutes: l.durationMin,
+        xpReward: 50,
+        description: "",
+        course: course ? shapeCourse(course) : null,
+        completed,
+        hasQuiz,
+        prev: idx > 0 ? siblings[idx - 1] : null,
+        next: idx < siblings.length - 1 ? siblings[idx + 1] : null,
+      });
+    },
+  });
+}
+
+export function useCreateLesson() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: { courseId: number; data: any }) => {
+      const ord =
+        Math.max(0, ...lessons.filter((l) => l.courseId === vars.courseId).map((l) => l.order)) + 1;
+      const l: Lesson = {
+        id: nextLessonId++,
+        courseId: vars.courseId,
+        title: vars.data.title ?? "Untitled lesson",
+        kind: vars.data.kind === "video" ? "video" : "reading",
+        durationMin: vars.data.durationMin ?? 10,
+        videoUrl: vars.data.videoUrl ?? null,
+        content: vars.data.content ?? null,
+        order: ord,
+      };
+      lessons.push(l);
+      await delay(null, 150);
+      return l;
+    },
+    onSuccess: (_d, v) => {
+      qc.invalidateQueries({ queryKey: getGetCourseQueryKey(v.courseId) });
+      qc.invalidateQueries({ queryKey: getListCoursesQueryKey() });
+    },
+  });
+}
+
+export function useDeleteLesson() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: any) => {
+      const lessonId: number = vars?.lessonId ?? vars?.id;
+      const i = lessons.findIndex((l) => l.id === lessonId);
+      if (i < 0) throw new Error("Lesson not found.");
+      const courseId = lessons[i].courseId;
+      lessons.splice(i, 1);
+      await delay(null, 120);
+      return { courseId };
+    },
+    onSuccess: (d) => {
+      qc.invalidateQueries({ queryKey: getGetCourseQueryKey(d.courseId) });
+      qc.invalidateQueries({ queryKey: getListCoursesQueryKey() });
+    },
+  });
+}
+
+export function useCompleteLesson() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: any) => {
+      const lessonId: number = vars?.lessonId ?? vars?.id;
+      const userId = loadSession();
+      if (userId == null) throw new Error("Not signed in.");
+      const u = findUser(userId)!;
+      const already = lessonProgress.some(
+        (p) => p.userId === userId && p.lessonId === lessonId,
+      );
+      let xpAwarded = 0;
+      const prevLevel = u.level;
+      if (!already) {
+        lessonProgress.push({
+          userId,
+          lessonId,
+          completedAt: todayIso(),
+        });
+        xpAwarded = 50;
+        u.xp += xpAwarded;
+        const lvl = levelForXp(u.xp);
+        u.level = lvl.level;
+        xpEvents.push({
+          userId,
+          amount: xpAwarded,
+          reason: "Lesson complete",
+          at: todayIso(),
+        });
+        persistMyProgress(u);
+      }
+      await delay(null, 150);
+      return {
+        ok: true,
+        xpAwarded,
+        leveledUp: u.level > prevLevel,
+        level: u.level,
+        newBadges: [] as any[],
+        lessonId,
+      };
+    },
+    onSuccess: (d) => {
+      const l = lessons.find((x) => x.id === d.lessonId);
+      if (l) qc.invalidateQueries({ queryKey: getGetCourseQueryKey(l.courseId) });
+      qc.invalidateQueries({ queryKey: getGetLessonQueryKey(d.lessonId) });
+      qc.invalidateQueries({ queryKey: getListMyEnrollmentsQueryKey() });
+      qc.invalidateQueries({ queryKey: getGetCurrentUserQueryKey() });
+    },
+  });
+}
+
+export function useGetLessonQuiz(lessonId: number, opts?: any) {
+  return useQuery({
+    queryKey: ["quiz", lessonId] as const,
+    enabled: opts?.query?.enabled ?? lessonId > 0,
+    retry: opts?.query?.retry ?? false,
+    queryFn: async () => {
+      const q = quizzes.find((x) => x.lessonId === lessonId);
+      if (!q) return delay(null);
+      const lesson = lessons.find((l) => l.id === lessonId);
+      // Flat shape: callers do `quiz.title`, `quiz.questions`, `quiz.id`, `quiz.xpReward`.
+      return delay({
+        id: lessonId,
+        lessonId,
+        title: `${lesson?.title ?? "Lesson"} — Quiz`,
+        xpReward: 20,
+        questions: q.questions.map((qq) => ({
+          id: qq.id,
+          text: qq.text,
+          choices: qq.choices,
+        })),
+      });
+    },
+  });
+}
+
+export function useSubmitQuiz() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: any) => {
+      // Accept either `lessonId` or `id` and either an object or array of answers
+      const lessonId: number = vars?.lessonId ?? vars?.id;
+      const rawAns = vars?.data?.answers;
+      const answersByQ: Record<number, number> = {};
+      if (Array.isArray(rawAns)) {
+        for (const a of rawAns) answersByQ[a.questionId] = a.choiceIndex;
+      } else if (rawAns && typeof rawAns === "object") {
+        for (const [k, v] of Object.entries(rawAns)) answersByQ[Number(k)] = v as number;
+      }
+
+      // The quizzes are stored by lessonId, but `vars.id` may be the quiz id
+      // (which equals the lessonId in our model). Try both.
+      const q =
+        quizzes.find((x) => x.lessonId === lessonId) ??
+        quizzes.find((x) => x.lessonId === vars?.lessonId);
+      if (!q) throw new Error("Quiz not found.");
+      const total = q.questions.length;
+      let correct = 0;
+      const detail = q.questions.map((qq) => {
+        const ans = answersByQ[qq.id];
+        const ok = ans === qq.correct;
+        if (ok) correct += 1;
+        return { questionId: qq.id, correct: ok, correctIndex: qq.correct, chose: ans };
+      });
+      const score = Math.round((correct / total) * 100);
+      const userId = loadSession();
+      let xpAwarded = 0;
+      let leveledUp = false;
+      let level = 1;
+      if (userId != null) {
+        const u = findUser(userId)!;
+        const prevLevel = u.level;
+        quizAttempts.push({
+          id: nextQuizAttemptId++,
+          userId,
+          lessonId: q.lessonId,
+          score,
+          takenAt: todayIso(),
+        });
+        xpAwarded = Math.round(score / 5); // up to 20 XP
+        u.xp += xpAwarded;
+        const lvl = levelForXp(u.xp);
+        u.level = lvl.level;
+        level = u.level;
+        leveledUp = u.level > prevLevel;
+        xpEvents.push({
+          userId,
+          amount: xpAwarded,
+          reason: "Quiz complete",
+          at: todayIso(),
+        });
+        persistMyProgress(u);
+      }
+      await delay(null, 200);
+      return { score, correct, total, detail, xpAwarded, leveledUp, level, passed: score >= 60 };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: getGetCurrentUserQueryKey() });
+    },
+  });
+}
+
+/* ──────────────────────────────────────────────────────────────────
+ *  PROFILE
+ * ────────────────────────────────────────────────────────────────── */
+export function useGetMyProfile() {
+  return useQuery({
+    queryKey: getGetMyProfileQueryKey(),
+    queryFn: async () => {
+      const userId = loadSession();
+      if (userId == null) return delay(null);
+      const u = findUser(userId)!;
+      return delay({ ...publicUser(u) });
+    },
+  });
+}
+
+export function useUpdateMyProfile() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: { data: any }) => {
+      const userId = loadSession();
+      if (userId == null) throw new Error("Not signed in.");
+      const u = findUser(userId)!;
+      const { firstName, lastName, phone, bio, grade, department } = vars.data ?? {};
+      if (firstName !== undefined) u.firstName = firstName;
+      if (lastName !== undefined) u.lastName = lastName;
+      if (phone !== undefined) u.phone = phone;
+      if (bio !== undefined) u.bio = bio;
+      if (grade !== undefined) u.grade = grade;
+      if (department !== undefined) u.department = department;
+      try {
+        await apiFetch("/users/me", {
+          method: "PATCH",
+          body: JSON.stringify({
+            firstName: u.firstName,
+            lastName: u.lastName,
+            phone: u.phone,
+            bio: u.bio,
+          }),
+        });
+      } catch {
+        /* keep local update even if server save fails */
+      }
+      return publicUser(u);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: getGetCurrentUserQueryKey() });
+      qc.invalidateQueries({ queryKey: getGetMyProfileQueryKey() });
+    },
+  });
+}
+
+export function useUpdateMyAvatar() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: any) => {
+      const userId = loadSession();
+      if (userId == null) throw new Error("Not signed in.");
+      const u = findUser(userId)!;
+      const next: string | null =
+        vars?.data?.avatarUrl !== undefined
+          ? vars.data.avatarUrl
+          : vars?.data?.dataUrl ?? null;
+      u.avatarUrl = next;
+      try {
+        await apiFetch("/users/me", {
+          method: "PATCH",
+          body: JSON.stringify({ avatarUrl: u.avatarUrl }),
+        });
+      } catch {
+        /* keep local update even if server save fails */
+      }
+      return publicUser(u);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: getGetCurrentUserQueryKey() });
+      qc.invalidateQueries({ queryKey: getGetMyProfileQueryKey() });
+    },
+  });
+}
+
+/* ──────────────────────────────────────────────────────────────────
+ *  GAMIFICATION
+ * ────────────────────────────────────────────────────────────────── */
+export function useGetLeaderboard() {
+  return useQuery({
+    queryKey: ["leaderboard"] as const,
+    queryFn: async () => {
+      const items = users
+        .filter((u) => u.role === "student")
+        .sort((a, b) => b.xp - a.xp)
+        .map((u, i) => ({
+          userId: u.id,
+          firstName: u.firstName,
+          lastName: u.lastName,
+          xp: u.xp,
+          level: u.level,
+          grade: u.grade ?? null,
+          rank: i + 1,
+        }));
+      return delay({ items });
+    },
+  });
+}
+
+export function useGetMyGamification(opts?: { query?: { enabled?: boolean } }) {
+  return useQuery({
+    queryKey: ["my-gamification"] as const,
+    enabled: opts?.query?.enabled ?? true,
+    queryFn: async () => {
+      const userId = loadSession();
+      if (userId == null) return delay({ badges: [], xp: 0, level: 1, streak: 0 });
+      const u = findUser(userId)!;
+      const myBadges = achievements
+        .filter((a) => a.userId === userId)
+        .map((a) => ({
+          ...a,
+          badge: badges.find((b) => b.id === a.badgeId)!,
+        }));
+      return delay({
+        badges: myBadges,
+        xp: u.xp,
+        level: u.level,
+        streak: u.streak,
+      });
+    },
+  });
+}
+
+export function useListBadges() {
+  return useQuery({
+    queryKey: getListBadgesQueryKey(),
+    queryFn: async () => delay({ items: [...badges] }),
+  });
+}
+
+export function useCreateBadge() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: { data: any }) => {
+      const b: Badge = {
+        id: nextBadgeId++,
+        name: vars.data.name ?? "New badge",
+        description: vars.data.description ?? "",
+        icon: vars.data.icon ?? "🏅",
+        color: vars.data.color ?? "#C9A84C",
+        criteria: (vars.data.criteria as Badge["criteria"]) ?? "manual",
+        threshold: vars.data.threshold ?? null,
+      };
+      badges.push(b);
+      await delay(null, 150);
+      return b;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: getListBadgesQueryKey() });
+    },
+  });
+}
+
+/* ──────────────────────────────────────────────────────────────────
+ *  SCHEDULE
+ * ────────────────────────────────────────────────────────────────── */
+export function useListScheduleEvents(_params: any = {}) {
+  return useQuery({
+    queryKey: getListScheduleEventsQueryKey(),
+    queryFn: async () => {
+      const items = [...scheduleEvents].sort(
+        (a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime(),
+      );
+      return delay({ items });
+    },
+  });
+}
+
+export function useCreateScheduleEvent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: { data: any }) => {
+      const userId = loadSession() ?? 1;
+      const ev: ScheduleEvent = {
+        id: nextEventId++,
+        title: vars.data.title ?? "Untitled",
+        kind: (vars.data.kind as ScheduleEvent["kind"]) ?? "class",
+        startsAt: vars.data.startsAt,
+        endsAt: vars.data.endsAt ?? null,
+        location: vars.data.location ?? null,
+        link: vars.data.link ?? null,
+        notes: vars.data.notes ?? null,
+        createdBy: userId,
+      };
+      scheduleEvents.push(ev);
+      await delay(null, 150);
+      return ev;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: getListScheduleEventsQueryKey() });
+    },
+  });
+}
+
+export function useDeleteScheduleEvent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: { id: number }) => {
+      const i = scheduleEvents.findIndex((e) => e.id === vars.id);
+      if (i >= 0) scheduleEvents.splice(i, 1);
+      await delay(null, 100);
+      return { ok: true };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: getListScheduleEventsQueryKey() });
+    },
+  });
+}
+
+/* ──────────────────────────────────────────────────────────────────
+ *  MESSAGES
+ * ────────────────────────────────────────────────────────────────── */
+export function useListMessageContacts(_opts?: any) {
+  return useQuery({
+    queryKey: getListMessageContactsQueryKey(),
+    queryFn: async () => {
+      const userId = loadSession();
+      if (userId == null) return delay({ items: [] });
+      const partnerIds = new Set<number>();
+      for (const m of messages) {
+        if (m.fromUserId === userId) partnerIds.add(m.toUserId);
+        else if (m.toUserId === userId) partnerIds.add(m.fromUserId);
+      }
+      const items = [...partnerIds].map((pid) => {
+        const p = findUser(pid);
+        const conv = messages
+          .filter(
+            (m) =>
+              (m.fromUserId === userId && m.toUserId === pid) ||
+              (m.fromUserId === pid && m.toUserId === userId),
+          )
+          .sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime());
+        const last = conv[0];
+        return {
+          userId: pid,
+          firstName: p?.firstName ?? "",
+          lastName: p?.lastName ?? "",
+          role: p?.role ?? "student",
+          avatarUrl: p?.avatarUrl ?? null,
+          lastMessage: last?.body ?? "",
+          lastSentAt: last?.sentAt ?? null,
+        };
+      });
+      items.sort((a, b) =>
+        (b.lastSentAt ?? "").localeCompare(a.lastSentAt ?? ""),
+      );
+      return delay({ items });
+    },
+  });
+}
+
+export function useGetConversation(
+  otherId: number,
+  opts?: { query?: { enabled?: boolean; refetchInterval?: number } },
+) {
+  return useQuery({
+    queryKey: getGetConversationQueryKey(otherId),
+    enabled: opts?.query?.enabled ?? otherId > 0,
+    refetchInterval: opts?.query?.refetchInterval,
+    queryFn: async () => {
+      const userId = loadSession();
+      if (userId == null) return delay({ messages: [], other: null });
+      const conv = messages
+        .filter(
+          (m) =>
+            (m.fromUserId === userId && m.toUserId === otherId) ||
+            (m.fromUserId === otherId && m.toUserId === userId),
+        )
+        .sort((a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime());
+      const other = findUser(otherId);
+      return delay({
+        messages: conv,
+        other: other ? publicUser(other) : null,
+      });
+    },
+  });
+}
+
+export function useSendMessage() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: { data: { toUserId: number; body: string } }) => {
+      const userId = loadSession();
+      if (userId == null) throw new Error("Not signed in.");
+      const m: Message = {
+        id: nextMessageId++,
+        fromUserId: userId,
+        toUserId: vars.data.toUserId,
+        body: vars.data.body,
+        sentAt: todayIso(),
+      };
+      messages.push(m);
+      await delay(null, 100);
+      return m;
+    },
+    onSuccess: (_d, v) => {
+      qc.invalidateQueries({ queryKey: getListMessageContactsQueryKey() });
+      qc.invalidateQueries({ queryKey: getGetConversationQueryKey(v.data.toUserId) });
+    },
+  });
+}
+
+export function useDeleteConversation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: { userId: number }) => {
+      const userId = loadSession();
+      if (userId == null) throw new Error("Not signed in.");
+      for (let i = messages.length - 1; i >= 0; i--) {
+        const m = messages[i];
+        if (
+          (m.fromUserId === userId && m.toUserId === vars.userId) ||
+          (m.fromUserId === vars.userId && m.toUserId === userId)
+        )
+          messages.splice(i, 1);
+      }
+      await delay(null, 120);
+      return { ok: true };
+    },
+    onSuccess: (_d, v) => {
+      qc.invalidateQueries({ queryKey: getListMessageContactsQueryKey() });
+      qc.invalidateQueries({ queryKey: getGetConversationQueryKey(v.userId) });
+    },
+  });
+}
+
+/* ──────────────────────────────────────────────────────────────────
+ *  DASHBOARDS
+ * ────────────────────────────────────────────────────────────────── */
+function buildXpByDay(userId: number): Array<{ day: string; count: number }> {
+  const map = new Map<string, number>();
+  for (const e of xpEvents) {
+    if (e.userId !== userId) continue;
+    const day = e.at.slice(0, 10);
+    map.set(day, (map.get(day) ?? 0) + e.amount);
+  }
+  return [...map.entries()].map(([day, count]) => ({ day, count }));
+}
+
+export function useGetStudentDashboard() {
+  return useQuery({
+    queryKey: ["dash-student"] as const,
+    queryFn: async () => {
+      const userId = loadSession();
+      if (userId == null) return delay(null);
+      const u = findUser(userId);
+      if (!u) return delay(null);
+
+      const myEnrolls = enrollments.filter((e) => e.userId === userId);
+      const enrollDetail = myEnrolls.map((e) => {
+        const c = courses.find((x) => x.id === e.courseId)!;
+        const courseLessons = lessons.filter((l) => l.courseId === c.id);
+        const completed = courseLessons.filter((l) =>
+          lessonProgress.some((p) => p.userId === userId && p.lessonId === l.id),
+        );
+        const progress =
+          courseLessons.length > 0
+            ? Math.round((completed.length / courseLessons.length) * 100)
+            : 0;
+        return {
+          id: e.id,
+          courseId: c.id,
+          course: shapeCourse(c),
+          totalLessonCount: courseLessons.length,
+          completedLessonCount: completed.length,
+          progress,
+        };
+      });
+
+      const completedLessonCount = lessonProgress.filter((p) => p.userId === userId).length;
+      const myAttempts = quizAttempts.filter((a) => a.userId === userId);
+      const completedQuizCount = myAttempts.length;
+      const avgQuizScore = myAttempts.length
+        ? Math.round(myAttempts.reduce((s, a) => s + a.score, 0) / myAttempts.length)
+        : 0;
+
+      const lvl = levelForXp(u.xp);
+      const sortedStudents = [...users]
+        .filter((x) => x.role === "student")
+        .sort((a, b) => b.xp - a.xp);
+      const rank = sortedStudents.findIndex((x) => x.id === userId) + 1;
+
+      const leaderboard = sortedStudents.slice(0, 8).map((x, i) => ({
+        userId: x.id,
+        firstName: x.firstName,
+        lastName: x.lastName,
+        xp: x.xp,
+        rank: i + 1,
+      }));
+
+      const myBadges = achievements
+        .filter((a) => a.userId === userId)
+        .sort((a, b) => new Date(b.earnedAt).getTime() - new Date(a.earnedAt).getTime())
+        .slice(0, 6)
+        .map((a) => ({
+          id: a.id,
+          earnedAt: a.earnedAt,
+          badge: badges.find((b) => b.id === a.badgeId)!,
+        }));
+
+      const upcomingEvents = scheduleEvents
+        .filter((e) => new Date(e.startsAt).getTime() >= Date.now() - 1000 * 60 * 60)
+        .sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime())
+        .slice(0, 5);
+
+      return delay({
+        rank,
+        currentLevelXp: lvl.currentLevelXp,
+        nextLevelXp: lvl.nextLevelXp,
+        stats: { userId: u.id, xp: u.xp, level: lvl.level, streak: u.streak },
+        enrolledCount: myEnrolls.length,
+        completedLessonCount,
+        completedQuizCount,
+        avgQuizScore,
+        enrollments: enrollDetail,
+        upcomingEvents,
+        xpByDay: buildXpByDay(userId),
+        leaderboard,
+        recentBadges: myBadges,
+      });
+    },
+  });
+}
+
+export function useGetTeacherDashboard() {
+  return useQuery({
+    queryKey: getGetTeacherDashboardQueryKey(),
+    queryFn: async () => {
+      const userId = loadSession() ?? 2;
+      const myCourses = courses.filter((c) => c.teacherId === userId);
+      const myCourseIds = new Set(myCourses.map((c) => c.id));
+      const myEnrollments = enrollments.filter((e) => myCourseIds.has(e.courseId));
+      const myStudentIds = new Set(myEnrollments.map((e) => e.userId));
+      const myStudentCount = myStudentIds.size;
+
+      const upcomingEvents = scheduleEvents
+        .filter((e) => new Date(e.startsAt).getTime() >= Date.now() - 1000 * 60 * 60)
+        .sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime())
+        .slice(0, 5);
+      const upcomingClassCount = scheduleEvents.filter(
+        (e) =>
+          e.kind === "class" &&
+          new Date(e.startsAt).getTime() >= Date.now() - 1000 * 60 * 60,
+      ).length;
+
+      // engagement = lessons completed per day across my courses
+      const myLessonIds = new Set(
+        lessons.filter((l) => myCourseIds.has(l.courseId)).map((l) => l.id),
+      );
+      const dayMap = new Map<string, number>();
+      for (const p of lessonProgress) {
+        if (!myLessonIds.has(p.lessonId)) continue;
+        const day = p.completedAt.slice(0, 10);
+        dayMap.set(day, (dayMap.get(day) ?? 0) + 1);
+      }
+      const engagementByDay = [...dayMap.entries()].map(([day, count]) => ({ day, count }));
+
+      const completedLessonCount = lessonProgress.filter((p) =>
+        myLessonIds.has(p.lessonId),
+      ).length;
+
+      const myStudents = [...myStudentIds]
+        .map((id) => findUser(id)!)
+        .filter(Boolean)
+        .sort((a, b) => b.xp - a.xp)
+        .map((s) => publicUser(s));
+
+      return delay({
+        myCourseCount: myCourses.length,
+        myStudentCount,
+        upcomingClassCount,
+        completedLessonCount,
+        myCourses: myCourses.map((c) => shapeCourse(c)),
+        upcomingEvents,
+        engagementByDay,
+        myStudents,
+      });
+    },
+  });
+}
+
+export function useGetAdminDashboard() {
+  return useQuery({
+    queryKey: ["dash-admin"] as const,
+    queryFn: async () => {
+      const totalStudents = users.filter((u) => u.role === "student").length;
+      const totalTeachers = users.filter((u) => u.role === "teacher").length;
+      const totalCourses = courses.length;
+      const totalLessons = lessons.length;
+      const pendingApplications = applications.filter((a) => a.status === "pending").length;
+      const upcomingEventCount = scheduleEvents.filter(
+        (e) => new Date(e.startsAt).getTime() >= Date.now(),
+      ).length;
+      const totalXpAwarded = users.reduce((s, u) => s + u.xp, 0);
+      const totalBadgesAwarded = achievements.length;
+
+      const dayMap = new Map<string, number>();
+      for (const a of applications) {
+        const day = a.createdAt.slice(0, 10);
+        dayMap.set(day, (dayMap.get(day) ?? 0) + 1);
+      }
+      const applicationsByDay = [...dayMap.entries()].map(([day, count]) => ({ day, count }));
+
+      const subjMap = new Map<string, number>();
+      for (const e of enrollments) {
+        const c = courses.find((x) => x.id === e.courseId);
+        if (!c) continue;
+        subjMap.set(c.subject, (subjMap.get(c.subject) ?? 0) + 1);
+      }
+      const enrollmentsBySubject = [...subjMap.entries()]
+        .map(([label, count]) => ({ label, count }))
+        .sort((a, b) => b.count - a.count);
+
+      const recentApplications = [...applications]
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(0, 6);
+
+      const topStudents = users
+        .filter((u) => u.role === "student")
+        .sort((a, b) => b.xp - a.xp)
+        .slice(0, 6)
+        .map((u, i) => ({
+          userId: u.id,
+          firstName: u.firstName,
+          lastName: u.lastName,
+          xp: u.xp,
+          level: u.level,
+          grade: u.grade ?? null,
+          rank: i + 1,
+        }));
+
+      return delay({
+        totalStudents,
+        totalTeachers,
+        totalCourses,
+        totalLessons,
+        pendingApplications,
+        upcomingEventCount,
+        totalXpAwarded,
+        totalBadgesAwarded,
+        applicationsByDay,
+        enrollmentsBySubject,
+        recentApplications,
+        topStudents,
+      });
+    },
+  });
+}
+
+/* Re-export the type to satisfy direct `Application` imports */
+export type { UseQueryOptions };
