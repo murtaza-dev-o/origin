@@ -55,9 +55,20 @@ const t = {
 const heroSlideOverlay =
   "linear-gradient(105deg, rgba(10,22,56,0.44) 0%, rgba(10,22,56,0.28) 48%, rgba(10,22,56,0.09) 100%)";
 
-// Slide 1 = opening (hero-4). Slide 2 = “Taught by the Very Best” (hero-1). Slide 3 = anywhere (hero-5).
+// Slide 0 = brand splash. Then hero-4 / hero-1 / hero-5 story slides.
 const slides = [
   {
+    kind: "brand" as const,
+    id: 0,
+    image: publicUrl("hero-5.jpeg"),
+    overlay: heroSlideOverlay,
+    blurb:
+      "Al Shamail International Academy is an online school built for children who deserve structure, warmth, and real academic progress. We combine qualified teachers, a clear curriculum, and a motivating platform so families everywhere can learn with confidence.",
+    cta: "Get Started",
+    accent: t.gold,
+  },
+  {
+    kind: "story" as const,
     id: 1,
     image: publicUrl("hero-4.jpeg"),
     overlay: heroSlideOverlay,
@@ -67,6 +78,7 @@ const slides = [
     accent: t.gold,
   },
   {
+    kind: "story" as const,
     id: 2,
     image: publicUrl("hero-1.jpeg"),
     overlay: heroSlideOverlay,
@@ -76,6 +88,7 @@ const slides = [
     accent: t.goldL,
   },
   {
+    kind: "story" as const,
     id: 3,
     image: publicUrl("hero-5.jpeg"),
     overlay: heroSlideOverlay,
@@ -233,6 +246,7 @@ export default function Home() {
   }, []);
 
   const slide = slides[slideIdx];
+  const isBrandSlide = slide.kind === "brand";
 
   return (
     <div style={{ fontFamily: "'DM Sans', sans-serif", background: t.offW, color: t.text, overflowX: "hidden" }}>
@@ -547,7 +561,7 @@ export default function Home() {
             padding: "0 28px",
             height: "100%",
             display: "flex",
-            alignItems: "flex-start",
+            alignItems: isBrandSlide ? "center" : "flex-start",
             justifyContent: "flex-start",
             flexDirection: "column",
             paddingTop: "clamp(6px, 1.25vh, 14px)",
@@ -562,7 +576,8 @@ export default function Home() {
               display: "flex",
               flexDirection: "column",
               width: "100%",
-              maxWidth: 640,
+              maxWidth: isBrandSlide ? 920 : 640,
+              alignSelf: isBrandSlide ? "center" : "flex-start",
             }}
           >
             <AnimatePresence mode="wait">
@@ -573,42 +588,125 @@ export default function Home() {
                 exit={{ opacity: 0, y: -16 }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
                 style={{
-                  maxWidth: 640,
+                  maxWidth: isBrandSlide ? 860 : 640,
                   width: "100%",
                   flex: 1,
                   minHeight: 0,
                   display: "flex",
                   flexDirection: "column",
+                  alignItems: isBrandSlide ? "center" : "flex-start",
+                  textAlign: isBrandSlide ? "center" : "left",
                 }}
               >
-                <h1
+                {slide.kind === "brand" ? (
+                  <>
+                    <img
+                      src={publicUrl("logo.jpeg")}
+                      alt="Al Shamail International Academy"
+                      style={{
+                        width: "clamp(160px, 28vw, 260px)",
+                        height: "auto",
+                        objectFit: "contain",
+                        marginBottom: 22,
+                        filter: "drop-shadow(0 10px 28px rgba(0,0,0,.45))",
+                      }}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                      }}
+                    />
+                    <div
+                      style={{
+                        fontFamily: "'Playfair Display', Georgia, serif",
+                        fontSize: "clamp(40px, 7.5vw, 80px)",
+                        fontWeight: 900,
+                        color: t.white,
+                        lineHeight: 1.05,
+                        letterSpacing: "-0.02em",
+                        marginBottom: 8,
+                        textShadow: "0 2px 32px rgba(0,0,0,.55), 0 1px 2px rgba(0,0,0,.4)",
+                      }}
+                    >
+                      Al Shamail
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "clamp(11px, 1.8vw, 14px)",
+                        fontWeight: 700,
+                        color: t.gold,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.2em",
+                        marginBottom: 6,
+                      }}
+                    >
+                      International Academy
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 600,
+                        color: t.muted,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.22em",
+                        marginBottom: 26,
+                      }}
+                    >
+                      Online
+                    </div>
+                    <p
+                      style={{
+                        fontSize: "clamp(15px, 2.1vw, 17px)",
+                        color: "rgba(255,255,255,.92)",
+                        lineHeight: 1.75,
+                        marginBottom: 34,
+                        maxWidth: 560,
+                        marginLeft: "auto",
+                        marginRight: "auto",
+                        fontWeight: 500,
+                        textShadow: "0 1px 3px rgba(0,0,0,.35)",
+                      }}
+                    >
+                      {slide.blurb}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <h1
+                      style={{
+                        fontSize: "clamp(38px, 5.5vw, 68px)",
+                        fontWeight: 900,
+                        color: t.white,
+                        fontFamily: "'Playfair Display', Georgia, serif",
+                        lineHeight: 1.1,
+                        marginBottom: 22,
+                        whiteSpace: "pre-line",
+                        textShadow: "0 2px 28px rgba(0,0,0,.55), 0 1px 2px rgba(0,0,0,.4)",
+                      }}
+                    >
+                      {slide.heading}
+                    </h1>
+                    <p
+                      style={{
+                        fontSize: 17,
+                        color: "rgba(255,255,255,.9)",
+                        lineHeight: 1.75,
+                        marginBottom: 36,
+                        maxWidth: 520,
+                        fontWeight: 500,
+                        textShadow: "0 1px 3px rgba(0,0,0,.35)",
+                      }}
+                    >
+                      {slide.sub}
+                    </p>
+                  </>
+                )}
+                <div
                   style={{
-                    fontSize: "clamp(38px, 5.5vw, 68px)",
-                    fontWeight: 900,
-                    color: t.white,
-                    fontFamily: "'Playfair Display', Georgia, serif",
-                    lineHeight: 1.1,
-                    marginBottom: 22,
-                    whiteSpace: "pre-line",
-                    textShadow: "0 2px 28px rgba(0,0,0,.55), 0 1px 2px rgba(0,0,0,.4)",
+                    display: "flex",
+                    gap: 14,
+                    flexWrap: "wrap",
+                    justifyContent: isBrandSlide ? "center" : "flex-start",
                   }}
                 >
-                  {slide.heading}
-                </h1>
-                <p
-                  style={{
-                    fontSize: 17,
-                    color: "rgba(255,255,255,.9)",
-                    lineHeight: 1.75,
-                    marginBottom: 36,
-                    maxWidth: 520,
-                    fontWeight: 500,
-                    textShadow: "0 1px 3px rgba(0,0,0,.35)",
-                  }}
-                >
-                  {slide.sub}
-                </p>
-                <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
                   <button type="button" className="als-btn-gold" onClick={goApply} style={{ fontSize: 15, padding: "14px 32px" }}>
                     {slide.cta} <ArrowRight size={16} />
                   </button>
@@ -626,6 +724,8 @@ export default function Home() {
                     gap: 10,
                     flexWrap: "wrap",
                     paddingTop: "clamp(16px, 2.5vh, 28px)",
+                    justifyContent: isBrandSlide ? "center" : "flex-start",
+                    width: "100%",
                   }}
                 >
                   {["10K+ Happy Students", "300+ Expert Teachers", "97% Parent Satisfaction"].map((label) => (
