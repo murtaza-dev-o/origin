@@ -61,7 +61,6 @@ const slides = [
     id: 1,
     image: publicUrl("hero-4.jpeg"),
     overlay: heroSlideOverlay,
-    tag: "Premium Online Education for Children",
     heading: "Learn.\nGrow.\nExcel.",
     sub: "Give your child a world-class education from home. Expert teachers, a structured curriculum, and a fun, engaging platform designed for young learners to thrive.",
     cta: "Start Your Journey",
@@ -571,25 +570,26 @@ export default function Home() {
             }}
           >
             <AnimatePresence mode="wait">
-            <motion.div
-              key={slideIdx}
-              initial={{ opacity: 0, y: 32 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -16 }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
-              style={{
-                maxWidth: 640,
-                width: "100%",
-                flex: 1,
-                minHeight: 0,
-                display: "flex",
-                flexDirection: "column",
-              }}
-            >
-              <div style={{ flex: "1 1 auto", minHeight: 0 }}>
-                <div className="als-hero-badge" style={{ marginBottom: 20 }}>
-                  <Sparkles size={12} /> {slide.tag}
-                </div>
+              <motion.div
+                key={slideIdx}
+                initial={{ opacity: 0, y: 32 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -16 }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+                style={{
+                  maxWidth: 640,
+                  width: "100%",
+                  flex: 1,
+                  minHeight: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                {slide.tag ? (
+                  <div className="als-hero-badge" style={{ marginBottom: 20 }}>
+                    <Sparkles size={12} /> {slide.tag}
+                  </div>
+                ) : null}
                 <h1
                   style={{
                     fontSize: "clamp(38px, 5.5vw, 68px)",
@@ -625,43 +625,43 @@ export default function Home() {
                     Sign In
                   </button>
                 </div>
-              </div>
 
-              {/* Trust row pinned to bottom of hero column so every slide lines up */}
-              <div
-                style={{
-                  flexShrink: 0,
-                  display: "flex",
-                  gap: 10,
-                  flexWrap: "wrap",
-                  paddingTop: "clamp(18px, 2.5vh, 28px)",
-                }}
-              >
-                {["10K+ Happy Students", "300+ Expert Teachers", "97% Parent Satisfaction"].map((label) => (
-                  <div
-                    key={label}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      fontSize: 13,
-                      fontWeight: 700,
-                      color: "rgba(255,255,255,.96)",
-                      padding: "8px 14px",
-                      borderRadius: 10,
-                      background: "rgba(15,26,60,0.55)",
-                      border: "1px solid rgba(255,255,255,.15)",
-                      boxShadow: "0 4px 18px rgba(0,0,0,.25)",
-                      textShadow: "0 1px 2px rgba(0,0,0,.35)",
-                      backdropFilter: "blur(6px)",
-                    }}
-                  >
-                    <CircleCheckBig size={14} color={t.goldL} strokeWidth={2.25} /> {label}
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          </AnimatePresence>
+                {/* marginTop auto eats spare height so trust row never collides with CTAs */}
+                <div
+                  style={{
+                    marginTop: "auto",
+                    flexShrink: 0,
+                    display: "flex",
+                    gap: 10,
+                    flexWrap: "wrap",
+                    paddingTop: "clamp(16px, 2.5vh, 28px)",
+                  }}
+                >
+                  {["10K+ Happy Students", "300+ Expert Teachers", "97% Parent Satisfaction"].map((label) => (
+                    <div
+                      key={label}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        fontSize: 13,
+                        fontWeight: 700,
+                        color: "rgba(255,255,255,.96)",
+                        padding: "8px 14px",
+                        borderRadius: 10,
+                        background: "rgba(15,26,60,0.55)",
+                        border: "1px solid rgba(255,255,255,.15)",
+                        boxShadow: "0 4px 18px rgba(0,0,0,.25)",
+                        textShadow: "0 1px 2px rgba(0,0,0,.35)",
+                        backdropFilter: "blur(6px)",
+                      }}
+                    >
+                      <CircleCheckBig size={14} color={t.goldL} strokeWidth={2.25} /> {label}
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
 
