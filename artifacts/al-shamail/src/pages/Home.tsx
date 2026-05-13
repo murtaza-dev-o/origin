@@ -259,7 +259,7 @@ export default function Home() {
         .als-course-card { background:#fff; border:1px solid ${t.light}; border-radius:18px; overflow:hidden; transition:all .25s; cursor:pointer; }
         .als-course-card:hover { transform:translateY(-4px); box-shadow:0 12px 36px rgba(27,43,94,.12); }
 
-        .als-hero-badge { display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:99px; background:rgba(15,26,60,0.55); border:1px solid rgba(201,168,76,.45); font-size:12px; font-weight:700; color:${t.goldL}; text-transform:uppercase; letter-spacing:.08em; text-shadow:0 1px 2px rgba(0,0,0,.45); backdrop-filter:blur(6px); }
+        .als-hero-badge { display:inline-flex; align-items:center; gap:5px; padding:4px 12px; border-radius:99px; background:rgba(15,26,60,0.55); border:1px solid rgba(201,168,76,.45); font-size:11px; font-weight:700; color:${t.goldL}; text-transform:uppercase; letter-spacing:.06em; text-shadow:0 1px 2px rgba(0,0,0,.45); backdrop-filter:blur(6px); }
 
         .als-divider-gold { width:64px; height:3px; border-radius:99px; background:linear-gradient(90deg,${t.gold},${t.goldL}); margin:14px auto 0; }
 
@@ -554,7 +554,7 @@ export default function Home() {
             alignItems: "flex-start",
             justifyContent: "flex-start",
             flexDirection: "column",
-            paddingTop: "clamp(16px, 3vh, 36px)",
+            paddingTop: "clamp(6px, 1.25vh, 14px)",
             paddingBottom: "clamp(60px, 8vh, 90px)",
             boxSizing: "border-box",
           }}
@@ -586,8 +586,8 @@ export default function Home() {
                 }}
               >
                 {slide.tag ? (
-                  <div className="als-hero-badge" style={{ marginBottom: 20 }}>
-                    <Sparkles size={12} /> {slide.tag}
+                  <div className="als-hero-badge" style={{ marginBottom: 10 }}>
+                    <Sparkles size={11} /> {slide.tag}
                   </div>
                 ) : null}
                 <h1
