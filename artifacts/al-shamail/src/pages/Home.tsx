@@ -51,12 +51,13 @@ const t = {
   light: "#E8EBF4",
 };
 
-// ─── Hero Slides (hero-1.jpeg … hero-3.jpeg in /public) ───────────────────────
+// Slide 1 = opening message (uses hero-2 for calmer background + readable stats).
+// Slide 2 = “Taught by the Very Best” (uses hero-1 = teacher photo).
 const slides = [
   {
     id: 1,
-    image: publicUrl("hero-1.jpeg"),
-    overlay: "linear-gradient(105deg, rgba(10,22,56,0.90) 0%, rgba(10,22,56,0.62) 55%, rgba(10,22,56,0.28) 100%)",
+    image: publicUrl("hero-2.jpeg"),
+    overlay: "linear-gradient(105deg, rgba(10,22,56,0.92) 0%, rgba(10,22,56,0.68) 55%, rgba(10,22,56,0.32) 100%)",
     tag: "Premium Online Education for Children",
     heading: "Learn.\nGrow.\nExcel.",
     sub: "Give your child a world-class education from home. Expert teachers, a structured curriculum, and a fun, engaging platform designed for young learners to thrive.",
@@ -65,8 +66,8 @@ const slides = [
   },
   {
     id: 2,
-    image: publicUrl("hero-2.jpeg"),
-    overlay: "linear-gradient(105deg, rgba(10,22,56,0.92) 0%, rgba(10,22,56,0.65) 55%, rgba(10,22,56,0.25) 100%)",
+    image: publicUrl("hero-1.jpeg"),
+    overlay: "linear-gradient(105deg, rgba(10,22,56,0.94) 0%, rgba(10,22,56,0.74) 52%, rgba(10,22,56,0.38) 100%)",
     tag: "Expert Teachers, Real Results",
     heading: "Taught by\nthe Very Best",
     sub: "Our passionate, qualified educators bring every subject to life — making learning engaging, meaningful, and tailored to each child's unique needs and learning style.",
@@ -597,20 +598,27 @@ export default function Home() {
                   Sign In
                 </button>
               </div>
-              <div style={{ display: "flex", gap: 16, marginTop: 40, flexWrap: "wrap" }}>
-                {["10K+ Happy Students", "300+ Expert Teachers", "97% Parent Satisfaction"].map((label, i) => (
+              <div style={{ display: "flex", gap: 10, marginTop: 40, flexWrap: "wrap" }}>
+                {["10K+ Happy Students", "300+ Expert Teachers", "97% Parent Satisfaction"].map((label) => (
                   <div
                     key={label}
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 6,
+                      gap: 8,
                       fontSize: 13,
                       fontWeight: 700,
-                      color: "rgba(255,255,255,.75)",
+                      color: "rgba(255,255,255,.96)",
+                      padding: "8px 12px",
+                      borderRadius: 10,
+                      background: "rgba(15,26,60,0.55)",
+                      border: "1px solid rgba(255,255,255,.12)",
+                      boxShadow: "0 4px 18px rgba(0,0,0,.25)",
+                      textShadow: "0 1px 2px rgba(0,0,0,.35)",
+                      backdropFilter: "blur(6px)",
                     }}
                   >
-                    <CircleCheckBig size={14} color={t.goldL} /> {label}
+                    <CircleCheckBig size={14} color={t.goldL} strokeWidth={2.25} /> {label}
                   </div>
                 ))}
               </div>
