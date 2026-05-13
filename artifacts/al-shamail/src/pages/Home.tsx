@@ -51,12 +51,16 @@ const t = {
   light: "#E8EBF4",
 };
 
-// Slide 1 = opening (hero-4). Slide 2 = “Taught by the Very Best” (hero-4). Slide 3 = anywhere (hero-5).
+// One scrim for all hero slides so typography and CTAs read the same on every photo.
+const heroSlideOverlay =
+  "linear-gradient(105deg, rgba(10,22,56,0.93) 0%, rgba(10,22,56,0.72) 52%, rgba(10,22,56,0.36) 100%)";
+
+// Slide 1 = opening (hero-4). Slide 2 = “Taught by the Very Best” (hero-1). Slide 3 = anywhere (hero-5).
 const slides = [
   {
     id: 1,
     image: publicUrl("hero-4.jpeg"),
-    overlay: "linear-gradient(105deg, rgba(10,22,56,0.95) 0%, rgba(10,22,56,0.82) 45%, rgba(10,22,56,0.45) 100%)",
+    overlay: heroSlideOverlay,
     tag: "Premium Online Education for Children",
     heading: "Learn.\nGrow.\nExcel.",
     sub: "Give your child a world-class education from home. Expert teachers, a structured curriculum, and a fun, engaging platform designed for young learners to thrive.",
@@ -65,8 +69,8 @@ const slides = [
   },
   {
     id: 2,
-    image: publicUrl("hero-4.jpeg"),
-    overlay: "linear-gradient(105deg, rgba(10,22,56,0.94) 0%, rgba(10,22,56,0.74) 52%, rgba(10,22,56,0.38) 100%)",
+    image: publicUrl("hero-1.jpeg"),
+    overlay: heroSlideOverlay,
     tag: "Expert Teachers, Real Results",
     heading: "Taught by\nthe Very Best",
     sub: "Our passionate, qualified educators bring every subject to life — making learning engaging, meaningful, and tailored to each child's unique needs and learning style.",
@@ -76,7 +80,7 @@ const slides = [
   {
     id: 3,
     image: publicUrl("hero-5.jpeg"),
-    overlay: "linear-gradient(105deg, rgba(10,22,56,0.92) 0%, rgba(10,22,56,0.68) 52%, rgba(10,22,56,0.35) 100%)",
+    overlay: heroSlideOverlay,
     tag: "Learn from Anywhere in the World",
     heading: "Study Anytime,\nAnywhere",
     sub: "Our platform adapts to your child's schedule and pace. Access lessons, videos, and quizzes on any device — with progress tracking and rewards to keep them motivated.",
