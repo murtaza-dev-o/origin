@@ -1251,7 +1251,7 @@ export default function Home() {
               { heading: "Subjects", links: ["Mathematics", "English & Literacy", "Science", "Geography", "Reading & Comprehension", "Critical Thinking"] },
               { heading: "Academy", links: ["About Us", "Our Teachers", "Testimonials", "Blog", "Careers"] },
               { heading: "Support", links: ["Contact Us", "FAQ", "Privacy Policy", "Terms of Service", "Help Center"] },
-            ].map((col, i) => (
+            ].map((col) => (
               <div key={col.heading}>
                 <h4 style={{ fontSize: 13, fontWeight: 800, color: t.gold, textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 18 }}>{col.heading}</h4>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
