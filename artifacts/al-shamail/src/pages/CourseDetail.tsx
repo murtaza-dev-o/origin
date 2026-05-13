@@ -347,8 +347,8 @@ export default function CourseDetail() {
           style={{
             display: "inline-flex", alignItems: "center", gap: 6,
             padding: "8px 14px", borderRadius: 10, fontSize: 13, fontWeight: 700,
-            background: B.white, color: B.danger ?? "#b91c1c",
-            border: `1.5px solid ${B.danger ?? "#b91c1c"}33`,
+            background: B.white, color: B.error,
+            border: `1.5px solid ${B.error}33`,
             cursor: deleteCourse.isPending ? "wait" : "pointer",
             opacity: deleteCourse.isPending ? 0.6 : 1,
           }}

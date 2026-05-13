@@ -429,7 +429,16 @@ export default function TeacherDashboard() {
                 </div>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {data.myCourses.map(c => (
+                  {data.myCourses.map((c: {
+                    id: number;
+                    title: string;
+                    subject: string;
+                    level: string;
+                    coverColor: string;
+                    coverEmoji: string;
+                    lessonCount: number;
+                    enrolledCount: number;
+                  }) => (
                     <Link key={c.id} href={`/courses/${c.id}`}
                       style={{
                         display: "grid", gridTemplateColumns: "54px 1fr auto",
@@ -470,7 +479,13 @@ export default function TeacherDashboard() {
                 <div style={{ color: B.muted }}>Nothing scheduled.</div>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {data.upcomingEvents.map(e => (
+                  {data.upcomingEvents.map((e: {
+                    id: number;
+                    kind: string;
+                    startsAt: string;
+                    title: string;
+                    location?: string | null;
+                  }) => (
                     <div key={e.id} style={{
                       padding: 12, borderRadius: 12,
                       background: B.offW, border: `1px solid ${B.light}`,
@@ -519,7 +534,14 @@ export default function TeacherDashboard() {
                 <div style={{ color: B.muted, fontSize: 13 }}>No students yet.</div>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {data.myStudents.slice(0, 6).map((s, i) => (
+                  {data.myStudents.slice(0, 6).map((s: {
+                    id: number;
+                    firstName: string;
+                    lastName: string;
+                    grade?: string | null;
+                    level: number;
+                    xp: number;
+                  }, i: number) => (
                     <div key={s.id} style={{
                       display: "grid", gridTemplateColumns: "28px 1fr auto",
                       gap: 10, alignItems: "center",

@@ -24,6 +24,15 @@ const BadgesPage = lazy(() => import("@/pages/BadgesPage"));
 const LeaderboardPage = lazy(() => import("@/pages/LeaderboardPage"));
 const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
 const MessagesPage = lazy(() => import("@/pages/MessagesPage"));
+const AboutPublic = lazy(() => import("@/pages/AboutPublic"));
+const ContactPublic = lazy(() => import("@/pages/ContactPublic"));
+const CoursesInfo = lazy(() => import("@/pages/CoursesInfo"));
+const TeachersPublic = lazy(() => import("@/pages/TeachersPublic"));
+const SyllabusBookList = lazy(() => import("@/pages/SyllabusBookList"));
+const SyllabusSemesters = lazy(() => import("@/pages/SyllabusSemesters"));
+const EnrollmentRules = lazy(() => import("@/pages/EnrollmentRules"));
+const EnrollmentFees = lazy(() => import("@/pages/EnrollmentFees"));
+const EnrollmentDocuments = lazy(() => import("@/pages/EnrollmentDocuments"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 const queryClient = new QueryClient({
@@ -179,6 +188,15 @@ function Router() {
       <Route path="/profile" component={ProfilePage} />
       <Route path="/messages" component={MessagesPage} />
       <Route path="/messages/:userId" component={MessagesPage} />
+      <Route path="/about" component={AboutPublic} />
+      <Route path="/contact" component={ContactPublic} />
+      <Route path="/courses-info" component={CoursesInfo} />
+      <Route path="/teachers" component={TeachersPublic} />
+      <Route path="/syllabus/book-list" component={SyllabusBookList} />
+      <Route path="/syllabus/semesters" component={SyllabusSemesters} />
+      <Route path="/enrollment/rules" component={EnrollmentRules} />
+      <Route path="/enrollment/fees" component={EnrollmentFees} />
+      <Route path="/enrollment/documents" component={EnrollmentDocuments} />
       <Route component={NotFound} />
     </Switch>
   );

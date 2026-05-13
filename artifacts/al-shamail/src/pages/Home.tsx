@@ -164,7 +164,9 @@ export default function Home() {
   const [slide, setSlide] = useState(0);
   const [scrolled, setScrolled] = useState(false);
   const [testimony, setTestimony] = useState(0);
+  const [openMenu, setOpenMenu] = useState<null | "syllabus" | "enrollment">(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const navMenuRef = useRef<HTMLDivElement | null>(null);
   const [, navigate] = useLocation();
 
   const goLogin = () => {
@@ -174,6 +176,30 @@ export default function Home() {
   const goSignIn = () => {
     navigate("/login");
   };
+
+  const go = useCallback(
+    (path: string) => {
+      setOpenMenu(null);
+      navigate(path);
+    },
+    [navigate]
+  );
+
+  useEffect(() => {
+    const onDoc = (e: MouseEvent) => {
+      if (navMenuRef.current && !navMenuRef.current.contains(e.target as Node)) setOpenMenu(null);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpenMenu(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const startTimer = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -265,6 +291,69 @@ export default function Home() {
           background: linear-gradient(90deg, ${B.gold}, ${B.goldL});
           margin: 14px auto 0;
         }
+
+        .als-nav-dd {
+          position: absolute;
+          top: calc(100% + 10px);
+          left: 50%;
+          transform: translateX(-50%);
+          min-width: 232px;
+          background: #fff;
+          border: 1px solid ${B.light};
+          border-radius: 12px;
+          box-shadow: 0 16px 40px rgba(27,43,94,.12);
+          padding: 6px 0;
+          z-index: 200;
+        }
+        .als-nav-dd button {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          width: 100%;
+          border: none;
+          background: none;
+          cursor: pointer;
+          font-family: inherit;
+          font-size: 13px;
+          font-weight: 600;
+          color: ${B.navy};
+          text-align: left;
+          padding: 10px 16px;
+          transition: background .15s, color .15s;
+        }
+        .als-nav-dd button:hover {
+          background: rgba(201,168,76,.1);
+          color: ${B.goldD};
+        }
+        .als-nav-trigger {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 14px;
+          font-weight: 600;
+          color: ${B.navy};
+          cursor: pointer;
+          transition: color .2s;
+          padding: 6px 10px;
+          border: none;
+          border-radius: 8px;
+          background: transparent;
+          font-family: inherit;
+        }
+        .als-nav-trigger:hover { color: ${B.gold}; }
+        .als-nav-pill {
+          font-size: 14px;
+          font-weight: 600;
+          color: ${B.navy};
+          cursor: pointer;
+          padding: 6px 10px;
+          border: none;
+          border-radius: 8px;
+          background: transparent;
+          font-family: inherit;
+          transition: color .2s;
+        }
+        .als-nav-pill:hover { color: ${B.gold}; }
 
         @media (max-width: 900px) {
           .als-nav-links { display: none !important; }
@@ -368,25 +457,78 @@ export default function Home() {
             </div>
           </div>
 
-          <nav className="als-nav-links" style={{ display: "flex", alignItems: "center", gap: 36 }}>
-            {["Courses", "About", "Teachers", "Contact"].map((n) => (
-              <span
-                key={n}
-                style={{
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: B.navy,
-                  cursor: "pointer",
-                  transition: "color .2s",
-                  position: "relative",
-                  padding: "4px 0",
-                }}
-                onMouseEnter={(e) => ((e.currentTarget as HTMLSpanElement).style.color = B.gold)}
-                onMouseLeave={(e) => ((e.currentTarget as HTMLSpanElement).style.color = B.navy)}
+          <nav
+            ref={navMenuRef}
+            className="als-nav-links"
+            style={{ display: "flex", alignItems: "center", gap: 4, position: "relative" }}
+            aria-label="Primary"
+          >
+            <div style={{ position: "relative" }}>
+              <button
+                type="button"
+                className="als-nav-trigger"
+                aria-expanded={openMenu === "syllabus"}
+                aria-haspopup="true"
+                onClick={() => setOpenMenu((p) => (p === "syllabus" ? null : "syllabus"))}
               >
-                {n}
-              </span>
-            ))}
+                Syllabus
+                <span style={{ opacity: 0.7, fontSize: 12, transform: openMenu === "syllabus" ? "rotate(180deg)" : "none", display: "inline-block" }}>▾</span>
+              </button>
+              {openMenu === "syllabus" ? (
+                <div className="als-nav-dd" role="menu">
+                  <button type="button" role="menuitem" onClick={() => go("/syllabus/book-list")}>
+                    <span>Book List</span>
+                  </button>
+                  <button type="button" role="menuitem" onClick={() => go("/syllabus/semesters")}>
+                    <span>Semesters</span>
+                  </button>
+                </div>
+              ) : null}
+            </div>
+
+            <button type="button" className="als-nav-pill" onClick={() => go("/about")}>
+              About
+            </button>
+
+            <div style={{ position: "relative" }}>
+              <button
+                type="button"
+                className="als-nav-trigger"
+                aria-expanded={openMenu === "enrollment"}
+                aria-haspopup="true"
+                onClick={() => setOpenMenu((p) => (p === "enrollment" ? null : "enrollment"))}
+              >
+                Enrollment Hub
+                <span style={{ opacity: 0.7, fontSize: 12, transform: openMenu === "enrollment" ? "rotate(180deg)" : "none", display: "inline-block" }}>▾</span>
+              </button>
+              {openMenu === "enrollment" ? (
+                <div className="als-nav-dd" role="menu">
+                  <button type="button" role="menuitem" onClick={() => go("/enrollment/rules")}>
+                    <span>Rules &amp; Regulations</span>
+                  </button>
+                  <button type="button" role="menuitem" onClick={() => go("/enrollment/fees")}>
+                    <span>Fee Details</span>
+                  </button>
+                  <button type="button" role="menuitem" onClick={() => go("/enrollment/documents")}>
+                    <span>Documents Required</span>
+                  </button>
+                  <button type="button" role="menuitem" onClick={() => go("/teachers")}>
+                    <span>Our Teachers</span>
+                  </button>
+                  <button type="button" role="menuitem" onClick={goLogin}>
+                    <span>Enroll Now</span>
+                  </button>
+                </div>
+              ) : null}
+            </div>
+
+            <button type="button" className="als-nav-pill" onClick={() => go("/courses-info")}>
+              Courses
+            </button>
+
+            <button type="button" className="als-nav-pill" onClick={() => go("/contact")}>
+              Contact
+            </button>
           </nav>
 
           <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
@@ -927,7 +1069,7 @@ export default function Home() {
             Ready to Give Your Child the Best Start?
           </h2>
           <p style={{ fontSize: 16, color: "rgba(255,255,255,.7)", marginBottom: 40, lineHeight: 1.7 }}>
-            Join thousands of families already learning with Al Shamail International Academy. Enrol today and watch your child's confidence and ability grow.
+            Join thousands of families already learning with Al Shamail International Academy. Enroll today and watch your child's confidence and ability grow.
           </p>
           <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
             <button className="als-btn-gold" onClick={goLogin} style={{ fontSize: 15, padding: "15px 36px" }}>

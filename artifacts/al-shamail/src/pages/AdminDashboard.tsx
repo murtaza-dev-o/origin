@@ -396,7 +396,15 @@ export default function AdminDashboard() {
                 <div style={{ color: B.muted, fontSize: 13 }}>No data yet.</div>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {data.topStudents.map((s) => (
+                  {data.topStudents.map((s: {
+                    userId: number;
+                    rank: number;
+                    firstName: string;
+                    lastName: string;
+                    level: number;
+                    grade?: string | null;
+                    xp: number;
+                  }) => (
                     <div
                       key={s.userId}
                       style={{
