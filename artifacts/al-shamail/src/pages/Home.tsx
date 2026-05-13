@@ -51,13 +51,12 @@ const t = {
   light: "#E8EBF4",
 };
 
-// Slide 1 = opening message (uses hero-2 for calmer background + readable stats).
-// Slide 2 = “Taught by the Very Best” (uses hero-1 = teacher photo).
+// Slide 1 = opening (hero-4). Slide 2 = “Taught by the Very Best” (hero-4). Slide 3 = anywhere (hero-5).
 const slides = [
   {
     id: 1,
-    image: publicUrl("hero-2.jpeg"),
-    overlay: "linear-gradient(105deg, rgba(10,22,56,0.92) 0%, rgba(10,22,56,0.68) 55%, rgba(10,22,56,0.32) 100%)",
+    image: publicUrl("hero-4.jpeg"),
+    overlay: "linear-gradient(105deg, rgba(10,22,56,0.95) 0%, rgba(10,22,56,0.82) 45%, rgba(10,22,56,0.45) 100%)",
     tag: "Premium Online Education for Children",
     heading: "Learn.\nGrow.\nExcel.",
     sub: "Give your child a world-class education from home. Expert teachers, a structured curriculum, and a fun, engaging platform designed for young learners to thrive.",
@@ -66,7 +65,7 @@ const slides = [
   },
   {
     id: 2,
-    image: publicUrl("hero-1.jpeg"),
+    image: publicUrl("hero-4.jpeg"),
     overlay: "linear-gradient(105deg, rgba(10,22,56,0.94) 0%, rgba(10,22,56,0.74) 52%, rgba(10,22,56,0.38) 100%)",
     tag: "Expert Teachers, Real Results",
     heading: "Taught by\nthe Very Best",
@@ -76,8 +75,8 @@ const slides = [
   },
   {
     id: 3,
-    image: publicUrl("hero-3.jpeg"),
-    overlay: "linear-gradient(105deg, rgba(10,22,56,0.90) 0%, rgba(10,22,56,0.60) 55%, rgba(10,22,56,0.25) 100%)",
+    image: publicUrl("hero-5.jpeg"),
+    overlay: "linear-gradient(105deg, rgba(10,22,56,0.92) 0%, rgba(10,22,56,0.68) 52%, rgba(10,22,56,0.35) 100%)",
     tag: "Learn from Anywhere in the World",
     heading: "Study Anytime,\nAnywhere",
     sub: "Our platform adapts to your child's schedule and pace. Access lessons, videos, and quizzes on any device — with progress tracking and rewards to keep them motivated.",
@@ -524,7 +523,7 @@ export default function Home() {
                 width: "100%",
                 height: "100%",
                 objectFit: "cover",
-                objectPosition: "center top",
+                objectPosition: "center center",
               }}
             />
             <div style={{ position: "absolute", inset: 0, background: slide.overlay }} />
@@ -965,7 +964,7 @@ export default function Home() {
                   { icon: <Sparkles size={16} />, label: "Earn XP points for completing lessons and quizzes" },
                   { icon: <Trophy size={16} />, label: "Unlock badges and certificates as skills grow" },
                   { icon: <Zap size={16} />, label: "Daily streaks and leaderboards keep children engaged" },
-                ].map((item, i) => (
+                ].map((item) => (
                   <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <div
                       style={{
