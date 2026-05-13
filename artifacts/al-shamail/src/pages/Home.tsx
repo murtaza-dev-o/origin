@@ -70,7 +70,6 @@ const slides = [
     id: 2,
     image: publicUrl("hero-1.jpeg"),
     overlay: heroSlideOverlay,
-    tag: "Expert Teachers, Real Results",
     heading: "Taught by\nthe Very Best",
     sub: "Our passionate, qualified educators bring every subject to life — making learning engaging, meaningful, and tailored to each child's unique needs and learning style.",
     cta: "Meet Our Teachers",
@@ -80,7 +79,6 @@ const slides = [
     id: 3,
     image: publicUrl("hero-5.jpeg"),
     overlay: heroSlideOverlay,
-    tag: "Learn from Anywhere in the World",
     heading: "Study Anytime,\nAnywhere",
     sub: "Our platform adapts to your child's schedule and pace. Access lessons, videos, and quizzes on any device — with progress tracking and rewards to keep them motivated.",
     cta: "Get Started Free",
@@ -258,8 +256,6 @@ export default function Home() {
 
         .als-course-card { background:#fff; border:1px solid ${t.light}; border-radius:18px; overflow:hidden; transition:all .25s; cursor:pointer; }
         .als-course-card:hover { transform:translateY(-4px); box-shadow:0 12px 36px rgba(27,43,94,.12); }
-
-        .als-hero-badge { display:inline-flex; align-items:center; gap:5px; padding:4px 12px; border-radius:99px; background:rgba(15,26,60,0.55); border:1px solid rgba(201,168,76,.45); font-size:11px; font-weight:700; color:${t.goldL}; text-transform:uppercase; letter-spacing:.06em; text-shadow:0 1px 2px rgba(0,0,0,.45); backdrop-filter:blur(6px); }
 
         .als-divider-gold { width:64px; height:3px; border-radius:99px; background:linear-gradient(90deg,${t.gold},${t.goldL}); margin:14px auto 0; }
 
@@ -585,11 +581,6 @@ export default function Home() {
                   flexDirection: "column",
                 }}
               >
-                {slide.tag ? (
-                  <div className="als-hero-badge" style={{ marginBottom: 10 }}>
-                    <Sparkles size={11} /> {slide.tag}
-                  </div>
-                ) : null}
                 <h1
                   style={{
                     fontSize: "clamp(38px, 5.5vw, 68px)",
