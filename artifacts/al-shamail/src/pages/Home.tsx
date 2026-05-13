@@ -51,9 +51,9 @@ const t = {
   light: "#E8EBF4",
 };
 
-// Lighter scrim so photos read through more; typography uses shadows for contrast.
+// Lighter scrim so photos read through; typography uses shadows for contrast.
 const heroSlideOverlay =
-  "linear-gradient(105deg, rgba(10,22,56,0.62) 0%, rgba(10,22,56,0.42) 48%, rgba(10,22,56,0.16) 100%)";
+  "linear-gradient(105deg, rgba(10,22,56,0.44) 0%, rgba(10,22,56,0.28) 48%, rgba(10,22,56,0.09) 100%)";
 
 // Slide 1 = opening (hero-4). Slide 2 = “Taught by the Very Best” (hero-1). Slide 3 = anywhere (hero-5).
 const slides = [
@@ -560,56 +560,83 @@ export default function Home() {
             boxSizing: "border-box",
           }}
         >
-          <AnimatePresence mode="wait">
+          <div
+            style={{
+              flex: 1,
+              minHeight: 0,
+              display: "flex",
+              flexDirection: "column",
+              width: "100%",
+              maxWidth: 640,
+            }}
+          >
+            <AnimatePresence mode="wait">
             <motion.div
               key={slideIdx}
               initial={{ opacity: 0, y: 32 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -16 }}
               transition={{ duration: 0.6, ease: "easeOut" }}
-              style={{ maxWidth: 640 }}
+              style={{
+                maxWidth: 640,
+                width: "100%",
+                flex: 1,
+                minHeight: 0,
+                display: "flex",
+                flexDirection: "column",
+              }}
             >
-              <div className="als-hero-badge" style={{ marginBottom: 20 }}>
-                <Sparkles size={12} /> {slide.tag}
-              </div>
-              <h1
-                style={{
-                  fontSize: "clamp(38px, 5.5vw, 68px)",
-                  fontWeight: 900,
-                  color: t.white,
-                  fontFamily: "'Playfair Display', Georgia, serif",
-                  lineHeight: 1.1,
-                  marginBottom: 22,
-                  whiteSpace: "pre-line",
-                  textShadow: "0 2px 28px rgba(0,0,0,.55), 0 1px 2px rgba(0,0,0,.4)",
-                }}
-              >
-                {slide.heading}
-              </h1>
-              <p
-                style={{
-                  fontSize: 17,
-                  color: "rgba(255,255,255,.9)",
-                  lineHeight: 1.75,
-                  marginBottom: 36,
-                  maxWidth: 520,
-                  fontWeight: 500,
-                  textShadow: "0 1px 3px rgba(0,0,0,.35)",
-                }}
-              >
-                {slide.sub}
-              </p>
-              <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-                <button type="button" className="als-btn-gold" onClick={goApply} style={{ fontSize: 15, padding: "14px 32px" }}>
-                  {slide.cta} <ArrowRight size={16} />
-                </button>
-                <button type="button" className="als-btn-outline" onClick={goLogin} style={{ fontSize: 15, padding: "14px 28px" }}>
-                  Sign In
-                </button>
+              <div style={{ flex: "1 1 auto", minHeight: 0 }}>
+                <div className="als-hero-badge" style={{ marginBottom: 20 }}>
+                  <Sparkles size={12} /> {slide.tag}
+                </div>
+                <h1
+                  style={{
+                    fontSize: "clamp(38px, 5.5vw, 68px)",
+                    fontWeight: 900,
+                    color: t.white,
+                    fontFamily: "'Playfair Display', Georgia, serif",
+                    lineHeight: 1.1,
+                    marginBottom: 22,
+                    whiteSpace: "pre-line",
+                    textShadow: "0 2px 28px rgba(0,0,0,.55), 0 1px 2px rgba(0,0,0,.4)",
+                  }}
+                >
+                  {slide.heading}
+                </h1>
+                <p
+                  style={{
+                    fontSize: 17,
+                    color: "rgba(255,255,255,.9)",
+                    lineHeight: 1.75,
+                    marginBottom: 36,
+                    maxWidth: 520,
+                    fontWeight: 500,
+                    textShadow: "0 1px 3px rgba(0,0,0,.35)",
+                  }}
+                >
+                  {slide.sub}
+                </p>
+                <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+                  <button type="button" className="als-btn-gold" onClick={goApply} style={{ fontSize: 15, padding: "14px 32px" }}>
+                    {slide.cta} <ArrowRight size={16} />
+                  </button>
+                  <button type="button" className="als-btn-outline" onClick={goLogin} style={{ fontSize: 15, padding: "14px 28px" }}>
+                    Sign In
+                  </button>
+                </div>
               </div>
 
-              {/* Trust stats — inline below CTAs, aligned with hero content */}
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 28 }}>
+              {/* Trust row pinned to bottom of hero column so every slide lines up */}
+              <div
+                style={{
+                  flexShrink: 0,
+                  display: "flex",
+                  gap: 10,
+                  flexWrap: "wrap",
+                  paddingTop: "clamp(18px, 2.5vh, 28px)",
+                }}
+              >
                 {["10K+ Happy Students", "300+ Expert Teachers", "97% Parent Satisfaction"].map((label) => (
                   <div
                     key={label}
@@ -635,6 +662,7 @@ export default function Home() {
               </div>
             </motion.div>
           </AnimatePresence>
+          </div>
         </div>
 
         <button
