@@ -51,9 +51,9 @@ const t = {
   light: "#E8EBF4",
 };
 
-// One scrim for all hero slides so typography and CTAs read the same on every photo.
+// Lighter scrim so photos read through more; typography uses shadows for contrast.
 const heroSlideOverlay =
-  "linear-gradient(105deg, rgba(10,22,56,0.93) 0%, rgba(10,22,56,0.72) 52%, rgba(10,22,56,0.36) 100%)";
+  "linear-gradient(105deg, rgba(10,22,56,0.62) 0%, rgba(10,22,56,0.42) 48%, rgba(10,22,56,0.16) 100%)";
 
 // Slide 1 = opening (hero-4). Slide 2 = “Taught by the Very Best” (hero-1). Slide 3 = anywhere (hero-5).
 const slides = [
@@ -260,7 +260,7 @@ export default function Home() {
         .als-course-card { background:#fff; border:1px solid ${t.light}; border-radius:18px; overflow:hidden; transition:all .25s; cursor:pointer; }
         .als-course-card:hover { transform:translateY(-4px); box-shadow:0 12px 36px rgba(27,43,94,.12); }
 
-        .als-hero-badge { display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:99px; background:rgba(201,168,76,.2); border:1px solid rgba(201,168,76,.4); font-size:12px; font-weight:700; color:${t.goldL}; text-transform:uppercase; letter-spacing:.08em; }
+        .als-hero-badge { display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:99px; background:rgba(15,26,60,0.55); border:1px solid rgba(201,168,76,.45); font-size:12px; font-weight:700; color:${t.goldL}; text-transform:uppercase; letter-spacing:.08em; text-shadow:0 1px 2px rgba(0,0,0,.45); backdrop-filter:blur(6px); }
 
         .als-divider-gold { width:64px; height:3px; border-radius:99px; background:linear-gradient(90deg,${t.gold},${t.goldL}); margin:14px auto 0; }
 
@@ -535,7 +535,7 @@ export default function Home() {
               style={{
                 position: "absolute",
                 inset: 0,
-                opacity: 0.04,
+                opacity: 0.025,
                 backgroundImage: `radial-gradient(circle at 20% 80%, ${t.gold} 1px, transparent 1px), radial-gradient(circle at 80% 20%, ${t.goldL} 1px, transparent 1px)`,
                 backgroundSize: "60px 60px",
               }}
@@ -552,8 +552,12 @@ export default function Home() {
             padding: "0 28px",
             height: "100%",
             display: "flex",
-            alignItems: "center",
+            alignItems: "flex-start",
+            justifyContent: "flex-start",
+            flexDirection: "column",
+            paddingTop: "clamp(16px, 3vh, 36px)",
             paddingBottom: "clamp(60px, 8vh, 90px)",
+            boxSizing: "border-box",
           }}
         >
           <AnimatePresence mode="wait">
@@ -577,7 +581,7 @@ export default function Home() {
                   lineHeight: 1.1,
                   marginBottom: 22,
                   whiteSpace: "pre-line",
-                  textShadow: "0 2px 24px rgba(0,0,0,.4)",
+                  textShadow: "0 2px 28px rgba(0,0,0,.55), 0 1px 2px rgba(0,0,0,.4)",
                 }}
               >
                 {slide.heading}
@@ -585,11 +589,12 @@ export default function Home() {
               <p
                 style={{
                   fontSize: 17,
-                  color: "rgba(255,255,255,.85)",
+                  color: "rgba(255,255,255,.9)",
                   lineHeight: 1.75,
                   marginBottom: 36,
                   maxWidth: 520,
                   fontWeight: 500,
+                  textShadow: "0 1px 3px rgba(0,0,0,.35)",
                 }}
               >
                 {slide.sub}
