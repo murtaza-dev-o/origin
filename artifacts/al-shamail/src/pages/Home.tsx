@@ -55,7 +55,6 @@ const t = {
 const heroSlideOverlay =
   "linear-gradient(105deg, rgba(10,22,56,0.44) 0%, rgba(10,22,56,0.28) 48%, rgba(10,22,56,0.09) 100%)";
 
-const heroBrandBackdrop = `linear-gradient(148deg, ${t.navyD} 0%, ${t.navy} 38%, #1e2f6a 72%, ${t.navyD} 100%)`;
 const heroBrandGlow =
   "radial-gradient(ellipse 85% 70% at 15% 18%, rgba(201,168,76,0.14) 0%, transparent 55%), radial-gradient(ellipse 60% 50% at 85% 80%, rgba(232,201,106,0.08) 0%, transparent 50%)";
 
@@ -527,7 +526,19 @@ export default function Home() {
           >
             {slide.kind === "brand" ? (
               <>
-                <div style={{ position: "absolute", inset: 0, background: heroBrandBackdrop }} />
+                <img
+                  src={publicUrl("hero-6.jpeg")}
+                  alt=""
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    objectPosition: "center center",
+                  }}
+                />
+                <div style={{ position: "absolute", inset: 0, background: heroSlideOverlay }} />
                 <div style={{ position: "absolute", inset: 0, background: heroBrandGlow }} />
                 <div
                   style={{
