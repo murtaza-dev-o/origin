@@ -55,6 +55,10 @@ const t = {
 const heroSlideOverlay =
   "linear-gradient(105deg, rgba(10,22,56,0.44) 0%, rgba(10,22,56,0.28) 48%, rgba(10,22,56,0.09) 100%)";
 
+// Stronger scrim on slide 1 (hero-6 + dense copy) — story slides keep heroSlideOverlay.
+const heroBrandSlideOverlay =
+  "linear-gradient(105deg, rgba(10,22,56,0.78) 0%, rgba(10,22,56,0.62) 50%, rgba(10,22,56,0.38) 100%)";
+
 const heroBrandGlow =
   "radial-gradient(ellipse 85% 70% at 15% 18%, rgba(201,168,76,0.14) 0%, transparent 55%), radial-gradient(ellipse 60% 50% at 85% 80%, rgba(232,201,106,0.08) 0%, transparent 50%)";
 
@@ -538,7 +542,7 @@ export default function Home() {
                     objectPosition: "center center",
                   }}
                 />
-                <div style={{ position: "absolute", inset: 0, background: heroSlideOverlay }} />
+                <div style={{ position: "absolute", inset: 0, background: heroBrandSlideOverlay }} />
                 <div style={{ position: "absolute", inset: 0, background: heroBrandGlow }} />
                 <div
                   style={{
@@ -578,7 +582,7 @@ export default function Home() {
                   style={{
                     position: "absolute",
                     inset: 0,
-                    background: "radial-gradient(ellipse 90% 90% at 50% 50%, transparent 25%, rgba(8,14,40,0.6) 100%)",
+                    background: "radial-gradient(ellipse 90% 90% at 50% 50%, transparent 20%, rgba(8,14,40,0.72) 100%)",
                     pointerEvents: "none",
                   }}
                 />
