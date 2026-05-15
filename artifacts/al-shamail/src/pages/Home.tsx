@@ -16,7 +16,6 @@ import {
   Award,
 } from "lucide-react";
 import { createLucideIcon } from "lucide-react";
-import BrandSlide from "./BrandSlide";
 
 // ─── Custom Icons ────────────────────────────────────────────────────────────
 const CircleCheckBig = createLucideIcon("circle-check-big", [
@@ -56,7 +55,11 @@ const t = {
 const heroSlideOverlay =
   "linear-gradient(105deg, rgba(10,22,56,0.44) 0%, rgba(10,22,56,0.28) 48%, rgba(10,22,56,0.09) 100%)";
 
-// Slide 0 = brand (BrandSlide component). Then hero-4 / hero-1 / hero-5 story slides.
+const heroBrandBackdrop = `linear-gradient(148deg, ${t.navyD} 0%, ${t.navy} 38%, #1e2f6a 72%, ${t.navyD} 100%)`;
+const heroBrandGlow =
+  "radial-gradient(ellipse 85% 70% at 15% 18%, rgba(201,168,76,0.14) 0%, transparent 55%), radial-gradient(ellipse 60% 50% at 85% 80%, rgba(232,201,106,0.08) 0%, transparent 50%)";
+
+// Slide 0 = brand (inline layout). Then hero-4 / hero-1 / hero-5 story slides.
 const slides = [
   {
     kind: "brand" as const,
@@ -523,7 +526,302 @@ export default function Home() {
             style={{ position: "absolute", inset: 0 }}
           >
             {slide.kind === "brand" ? (
-              <BrandSlide />
+              <>
+                <div style={{ position: "absolute", inset: 0, background: heroBrandBackdrop }} />
+                <div style={{ position: "absolute", inset: 0, background: heroBrandGlow }} />
+                <div
+                  style={{
+                    position: "absolute",
+                    width: 500,
+                    height: 500,
+                    borderRadius: "50%",
+                    background: "radial-gradient(ellipse, rgba(201,168,76,0.16) 0%, transparent 65%)",
+                    top: -80,
+                    left: -60,
+                    pointerEvents: "none",
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    width: 360,
+                    height: 360,
+                    borderRadius: "50%",
+                    background: "radial-gradient(ellipse, rgba(232,201,106,0.07) 0%, transparent 65%)",
+                    bottom: -60,
+                    right: -40,
+                    pointerEvents: "none",
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    opacity: 0.04,
+                    backgroundImage: `radial-gradient(circle at 20% 80%, ${t.gold} 1px, transparent 1px), radial-gradient(circle at 80% 20%, ${t.goldL} 1px, transparent 1px)`,
+                    backgroundSize: "60px 60px",
+                    pointerEvents: "none",
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    background: "radial-gradient(ellipse 90% 90% at 50% 50%, transparent 25%, rgba(8,14,40,0.6) 100%)",
+                    pointerEvents: "none",
+                  }}
+                />
+                <style>{`
+                  @keyframes als-rotateSlow  { from { transform: rotate(0deg);   } to { transform: rotate(360deg);  } }
+                  @keyframes als-rotateSlowR { from { transform: rotate(0deg);   } to { transform: rotate(-360deg); } }
+                  @keyframes als-floatY      { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+                  @keyframes als-pulseDot    { 0%,100% { opacity:.5; transform:scale(1);   } 50% { opacity:1; transform:scale(1.5); } }
+                  @keyframes als-expandW     { from { width:0; opacity:0; } to { width:100%; opacity:1; } }
+                  @keyframes als-fadeUp      { from { opacity:0; transform:translateY(22px); } to { opacity:1; transform:translateY(0); } }
+                  @keyframes als-slideInL    { from { opacity:0; transform:translateX(-32px); } to { opacity:1; transform:translateX(0); } }
+                  .als-orbit-1 { position:absolute; top:50%; left:28%; width:480px; height:480px; margin:-240px 0 0 -240px; border-radius:50%; border:1px solid rgba(201,168,76,0.07); pointer-events:none; animation:als-rotateSlow 90s linear infinite; }
+                  .als-orbit-2 { position:absolute; top:50%; left:28%; width:680px; height:680px; margin:-340px 0 0 -340px; border-radius:50%; border:1px solid rgba(201,168,76,0.04); pointer-events:none; animation:als-rotateSlowR 130s linear infinite; }
+                  .als-orbit-dot { position:absolute; top:4%; left:50%; width:6px; height:6px; margin-left:-3px; border-radius:50%; background:#C9A84C; box-shadow:0 0 10px rgba(201,168,76,0.9); animation:als-pulseDot 3s ease-in-out infinite; }
+                  .als-ring-outer { position:absolute; inset:-24px; border-radius:50%; border:1px solid rgba(201,168,76,0.12); animation:als-rotateSlowR 24s linear infinite; }
+                  .als-ring-mid   { position:absolute; inset:-12px; border-radius:50%; border:1.5px solid rgba(201,168,76,0.28); animation:als-rotateSlow 16s linear infinite; }
+                  .als-ring-mid::after { content:''; position:absolute; top:7%; right:-5px; width:9px; height:9px; border-radius:50%; background:#C9A84C; box-shadow:0 0 12px rgba(201,168,76,1); }
+                  .als-gold-line { height:2.5px; border-radius:99px; background:linear-gradient(90deg,#C9A84C,#E8C96A,#C9A84C,transparent); max-width:280px; animation:als-expandW 0.9s cubic-bezier(0.34,1.56,0.64,1) 0.5s both; }
+                  .als-bs-pill { display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:700; color:rgba(255,255,255,0.85); padding:6px 12px; border-radius:9px; background:rgba(15,26,60,0.55); border:1px solid rgba(255,255,255,0.1); backdrop-filter:blur(6px); }
+                  @media (max-width:900px) {
+                    .als-brand-cols { flex-direction:column !important; align-items:center !important; text-align:center !important; padding:28px 20px 56px !important; gap:28px !important; }
+                    .als-brand-cols .als-brand-text { align-items:center !important; }
+                    .als-gold-line { margin-left:auto !important; margin-right:auto !important; }
+                  }
+                `}</style>
+                <div className="als-orbit-1">
+                  <div className="als-orbit-dot" />
+                </div>
+                <div className="als-orbit-2" />
+                <div
+                  className="als-brand-cols"
+                  style={{
+                    position: "relative",
+                    zIndex: 10,
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: "100%",
+                    height: "100%",
+                    padding: "40px 48px 52px",
+                    gap: "clamp(32px, 5vw, 64px)",
+                    boxSizing: "border-box",
+                  }}
+                >
+                  <div
+                    style={{
+                      flex: "0 0 auto",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      animation: "als-slideInL 0.8s cubic-bezier(0.34,1.56,0.64,1) 0.08s both",
+                    }}
+                  >
+                    <div style={{ position: "relative", animation: "als-floatY 7s ease-in-out 0.5s infinite" }}>
+                      <div className="als-ring-outer" />
+                      <div className="als-ring-mid" />
+                      <div
+                        style={{
+                          width: 220,
+                          height: 220,
+                          borderRadius: "50%",
+                          background: "#ffffff",
+                          border: "2px solid rgba(255,255,255,0.2)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          boxShadow:
+                            "0 28px 70px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.3), 0 0 0 1px rgba(201,168,76,0.15)",
+                          overflow: "hidden",
+                          position: "relative",
+                        }}
+                      >
+                        <div
+                          style={{
+                            position: "absolute",
+                            inset: 0,
+                            borderRadius: "50%",
+                            border: "2px solid rgba(201,168,76,0.18)",
+                            pointerEvents: "none",
+                            zIndex: 1,
+                          }}
+                        />
+                        <img
+                          src={publicUrl("logo.jpeg")}
+                          alt="Al Shamail International Academy"
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            objectPosition: "center center",
+                            display: "block",
+                          }}
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = "none";
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    className="als-brand-text"
+                    style={{ flex: "1 1 0", minWidth: 0, display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 0 }}
+                  >
+                    <div
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 800,
+                        color: t.gold,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.2em",
+                        marginBottom: 10,
+                        animation: "als-fadeUp 0.6s ease 0.3s both",
+                      }}
+                    >
+                      Welcome to
+                    </div>
+                    <h1
+                      style={{
+                        fontFamily: "'Playfair Display', Georgia, serif",
+                        fontSize: "clamp(38px, 5.5vw, 60px)",
+                        fontWeight: 900,
+                        color: t.white,
+                        lineHeight: 1,
+                        letterSpacing: "-0.02em",
+                        margin: 0,
+                        textShadow: "0 3px 40px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.3)",
+                        animation: "als-fadeUp 0.7s cubic-bezier(0.34,1.56,0.64,1) 0.2s both",
+                      }}
+                    >
+                      Al Shamail
+                    </h1>
+                    <div className="als-gold-line" style={{ margin: "14px 0" }} />
+                    <div
+                      style={{
+                        fontSize: "clamp(11px,1.4vw,13px)",
+                        fontWeight: 700,
+                        color: t.gold,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.2em",
+                        animation: "als-fadeUp 0.6s ease 0.55s both",
+                      }}
+                    >
+                      International Academy
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 600,
+                        color: "rgba(248,246,241,0.38)",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.26em",
+                        marginTop: 4,
+                        animation: "als-fadeUp 0.6s ease 0.65s both",
+                      }}
+                    >
+                      Online · KG to A-Level · Learn · Grow · Succeed
+                    </div>
+                    <p
+                      style={{
+                        fontSize: "clamp(14px, 1.8vw, 16.5px)",
+                        color: "rgba(255,255,255,0.78)",
+                        lineHeight: 1.8,
+                        fontWeight: 500,
+                        textShadow: "0 1px 4px rgba(0,0,0,0.3)",
+                        marginTop: 18,
+                        marginBottom: 0,
+                        animation: "als-fadeUp 0.65s ease 0.75s both",
+                      }}
+                    >
+                      An online school built for children who deserve{" "}
+                      <span style={{ color: t.goldL, fontWeight: 700 }}>structure, warmth</span> and real academic
+                      progress.{" "}
+                      <span style={{ color: "rgba(255,255,255,0.6)" }}>
+                        Qualified teachers. A clear curriculum. A platform families trust.
+                      </span>
+                    </p>
+                    <div
+                      style={{
+                        display: "flex",
+                        marginTop: 24,
+                        borderRadius: 16,
+                        background: "rgba(15,26,60,0.52)",
+                        border: "1px solid rgba(201,168,76,0.2)",
+                        backdropFilter: "blur(12px)",
+                        overflow: "hidden",
+                        width: "100%",
+                        maxWidth: 420,
+                        animation: "als-fadeUp 0.65s ease 0.9s both",
+                      }}
+                    >
+                      {[
+                        { val: "10K+", label: "Happy Students" },
+                        { val: "300+", label: "Expert Teachers" },
+                        { val: "97%", label: "Satisfaction" },
+                      ].map((s, i, arr) => (
+                        <div
+                          key={s.val}
+                          style={{
+                            flex: 1,
+                            padding: "16px 12px",
+                            textAlign: "center",
+                            borderRight: i < arr.length - 1 ? "1px solid rgba(201,168,76,0.14)" : "none",
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontFamily: "'Playfair Display', serif",
+                              fontSize: "clamp(20px,3vw,26px)",
+                              fontWeight: 900,
+                              color: t.gold,
+                              lineHeight: 1.1,
+                              marginBottom: 3,
+                            }}
+                          >
+                            {s.val}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: 9.5,
+                              fontWeight: 700,
+                              color: "rgba(255,255,255,0.4)",
+                              textTransform: "uppercase",
+                              letterSpacing: "0.09em",
+                            }}
+                          >
+                            {s.label}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: 8,
+                        flexWrap: "wrap",
+                        marginTop: 16,
+                        animation: "als-fadeUp 0.65s ease 1.05s both",
+                      }}
+                    >
+                      {["10K+ Happy Students", "300+ Expert Teachers", "97% Parent Satisfaction"].map((label) => (
+                        <div key={label} className="als-bs-pill">
+                          <span style={{ color: t.goldL }}>✓</span> {label}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div style={{ position: "absolute", bottom: -2, left: 0, right: 0, zIndex: 5, pointerEvents: "none" }}>
+                  <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: "block", width: "100%" }}>
+                    <path d="M0 60L1440 60L1440 22C1200 52 960 8 720 30C480 52 240 8 0 22L0 60Z" fill={t.offW} />
+                  </svg>
+                </div>
+              </>
             ) : (
               <>
                 <img
