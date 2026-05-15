@@ -530,7 +530,7 @@ export default function Home() {
             {slide.kind === "brand" ? (
               <>
                 <img
-                  src={publicUrl("hero-7.jpeg")}
+                  src={publicUrl("hero-8.jpeg")}
                   alt=""
                   style={{
                     position: "absolute",
@@ -600,7 +600,6 @@ export default function Home() {
                   .als-ring-mid   { position:absolute; inset:-12px; border-radius:50%; border:1.5px solid rgba(201,168,76,0.28); animation:als-rotateSlow 16s linear infinite; }
                   .als-ring-mid::after { content:''; position:absolute; top:7%; right:-5px; width:9px; height:9px; border-radius:50%; background:#C9A84C; box-shadow:0 0 12px rgba(201,168,76,1); }
                   .als-gold-line { height:2.5px; border-radius:99px; background:linear-gradient(90deg,#C9A84C,#E8C96A,#C9A84C,transparent); max-width:280px; animation:als-expandW 0.9s cubic-bezier(0.34,1.56,0.64,1) 0.5s both; }
-                  .als-bs-pill { display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:700; color:${t.navy}; padding:6px 12px; border-radius:9px; background:rgba(255,255,255,0.9); border:1px solid rgba(27,43,94,0.12); backdrop-filter:blur(8px); box-shadow:0 2px 12px rgba(27,43,94,0.08); }
                   .als-brand-text .als-brand-eyebrow { color:${t.goldL}; text-shadow:0 1px 4px rgba(0,0,0,0.5); }
                   .als-brand-text .als-brand-title { color:#ffffff; text-shadow:0 2px 28px rgba(0,0,0,0.6), 0 1px 3px rgba(0,0,0,0.45); }
                   .als-brand-text .als-brand-academy { color:rgba(255,255,255,0.92); text-shadow:0 1px 4px rgba(0,0,0,0.4); }
@@ -820,23 +819,49 @@ export default function Home() {
                         </div>
                       ))}
                     </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: 8,
-                        flexWrap: "wrap",
-                        marginTop: 16,
-                        animation: "als-fadeUp 0.65s ease 1.05s both",
-                      }}
-                    >
-                      {["10K+ Happy Students", "300+ Expert Teachers", "97% Parent Satisfaction"].map((label) => (
-                        <div key={label} className="als-bs-pill">
-                          <span style={{ color: t.goldL }}>✓</span> {label}
-                        </div>
-                      ))}
-                    </div>
                   </div>
                 </div>
+
+                {/* Trust badges — absolutely pinned to bottom, matching story slides */}
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: "clamp(68px, 9vh, 100px)",
+                    left: 0,
+                    right: 0,
+                    zIndex: 20,
+                    display: "flex",
+                    justifyContent: "center",
+                    gap: 10,
+                    flexWrap: "wrap",
+                    padding: "0 28px",
+                    animation: "als-fadeUp 0.65s ease 1.05s both",
+                  }}
+                >
+                  {["10K+ Happy Students", "300+ Expert Teachers", "97% Parent Satisfaction"].map((label) => (
+                    <div
+                      key={label}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        fontSize: 13,
+                        fontWeight: 700,
+                        color: "rgba(255,255,255,.96)",
+                        padding: "8px 14px",
+                        borderRadius: 10,
+                        background: "rgba(15,26,60,0.55)",
+                        border: "1px solid rgba(255,255,255,.15)",
+                        boxShadow: "0 4px 18px rgba(0,0,0,.25)",
+                        textShadow: "0 1px 2px rgba(0,0,0,.35)",
+                        backdropFilter: "blur(6px)",
+                      }}
+                    >
+                      <CircleCheckBig size={14} color={t.goldL} strokeWidth={2.25} /> {label}
+                    </div>
+                  ))}
+                </div>
+
                 <div style={{ position: "absolute", bottom: -2, left: 0, right: 0, zIndex: 5, pointerEvents: "none" }}>
                   <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: "block", width: "100%" }}>
                     <path d="M0 60L1440 60L1440 22C1200 52 960 8 720 30C480 52 240 8 0 22L0 60Z" fill={t.offW} />
