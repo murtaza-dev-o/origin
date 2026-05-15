@@ -55,10 +55,6 @@ const t = {
 const heroSlideOverlay =
   "linear-gradient(105deg, rgba(10,22,56,0.44) 0%, rgba(10,22,56,0.28) 48%, rgba(10,22,56,0.09) 100%)";
 
-// Stronger scrim on slide 1 (hero-7 + dense copy) — story slides keep heroSlideOverlay.
-const heroBrandSlideOverlay =
-  "linear-gradient(105deg, rgba(10,22,56,0.78) 0%, rgba(10,22,56,0.62) 50%, rgba(10,22,56,0.38) 100%)";
-
 const heroBrandGlow =
   "radial-gradient(ellipse 85% 70% at 15% 18%, rgba(201,168,76,0.14) 0%, transparent 55%), radial-gradient(ellipse 60% 50% at 85% 80%, rgba(232,201,106,0.08) 0%, transparent 50%)";
 
@@ -542,7 +538,7 @@ export default function Home() {
                     objectPosition: "center center",
                   }}
                 />
-                <div style={{ position: "absolute", inset: 0, background: heroBrandSlideOverlay }} />
+                <div style={{ position: "absolute", inset: 0, background: heroSlideOverlay }} />
                 <div style={{ position: "absolute", inset: 0, background: heroBrandGlow }} />
                 <div
                   style={{
@@ -582,7 +578,7 @@ export default function Home() {
                   style={{
                     position: "absolute",
                     inset: 0,
-                    background: "radial-gradient(ellipse 90% 90% at 50% 50%, transparent 20%, rgba(8,14,40,0.72) 100%)",
+                    background: "radial-gradient(ellipse 90% 90% at 50% 50%, transparent 35%, rgba(8,14,40,0.28) 100%)",
                     pointerEvents: "none",
                   }}
                 />
@@ -601,7 +597,15 @@ export default function Home() {
                   .als-ring-mid   { position:absolute; inset:-12px; border-radius:50%; border:1.5px solid rgba(201,168,76,0.28); animation:als-rotateSlow 16s linear infinite; }
                   .als-ring-mid::after { content:''; position:absolute; top:7%; right:-5px; width:9px; height:9px; border-radius:50%; background:#C9A84C; box-shadow:0 0 12px rgba(201,168,76,1); }
                   .als-gold-line { height:2.5px; border-radius:99px; background:linear-gradient(90deg,#C9A84C,#E8C96A,#C9A84C,transparent); max-width:280px; animation:als-expandW 0.9s cubic-bezier(0.34,1.56,0.64,1) 0.5s both; }
-                  .als-bs-pill { display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:700; color:rgba(255,255,255,0.85); padding:6px 12px; border-radius:9px; background:rgba(15,26,60,0.55); border:1px solid rgba(255,255,255,0.1); backdrop-filter:blur(6px); }
+                  .als-bs-pill { display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:700; color:${t.navy}; padding:6px 12px; border-radius:9px; background:rgba(255,255,255,0.9); border:1px solid rgba(27,43,94,0.12); backdrop-filter:blur(8px); box-shadow:0 2px 12px rgba(27,43,94,0.08); }
+                  .als-brand-text .als-brand-eyebrow { color:${t.goldD}; text-shadow:0 1px 0 rgba(255,255,255,0.8); }
+                  .als-brand-text .als-brand-title { color:${t.navy}; text-shadow:0 1px 0 rgba(255,255,255,0.95), 0 2px 20px rgba(255,255,255,0.7); }
+                  .als-brand-text .als-brand-academy { color:${t.navy}; }
+                  .als-brand-text .als-brand-tagline { color:${t.muted}; }
+                  .als-brand-text .als-brand-body { color:${t.text}; text-shadow:0 1px 0 rgba(255,255,255,0.85); }
+                  .als-brand-stats { background:rgba(255,255,255,0.92) !important; border-color:rgba(27,43,94,0.1) !important; box-shadow:0 8px 32px rgba(27,43,94,0.1) !important; }
+                  .als-brand-stat-val { color:${t.navy} !important; }
+                  .als-brand-stat-label { color:${t.muted} !important; }
                   @media (max-width:900px) {
                     .als-brand-cols { flex-direction:column !important; align-items:center !important; text-align:center !important; padding:28px 20px 56px !important; gap:28px !important; }
                     .als-brand-cols .als-brand-text { align-items:center !important; }
@@ -688,10 +692,10 @@ export default function Home() {
                     style={{ flex: "1 1 0", minWidth: 0, display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 0 }}
                   >
                     <div
+                      className="als-brand-eyebrow"
                       style={{
                         fontSize: 11,
                         fontWeight: 800,
-                        color: t.gold,
                         textTransform: "uppercase",
                         letterSpacing: "0.2em",
                         marginBottom: 10,
@@ -701,15 +705,14 @@ export default function Home() {
                       Welcome to
                     </div>
                     <h1
+                      className="als-brand-title"
                       style={{
                         fontFamily: "'Playfair Display', Georgia, serif",
                         fontSize: "clamp(38px, 5.5vw, 60px)",
                         fontWeight: 900,
-                        color: t.white,
                         lineHeight: 1,
                         letterSpacing: "-0.02em",
                         margin: 0,
-                        textShadow: "0 3px 40px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.3)",
                         animation: "als-fadeUp 0.7s cubic-bezier(0.34,1.56,0.64,1) 0.2s both",
                       }}
                     >
@@ -717,10 +720,10 @@ export default function Home() {
                     </h1>
                     <div className="als-gold-line" style={{ margin: "14px 0" }} />
                     <div
+                      className="als-brand-academy"
                       style={{
                         fontSize: "clamp(11px,1.4vw,13px)",
                         fontWeight: 700,
-                        color: t.gold,
                         textTransform: "uppercase",
                         letterSpacing: "0.2em",
                         animation: "als-fadeUp 0.6s ease 0.55s both",
@@ -729,10 +732,10 @@ export default function Home() {
                       International Academy
                     </div>
                     <div
+                      className="als-brand-tagline"
                       style={{
                         fontSize: 10,
                         fontWeight: 600,
-                        color: "rgba(248,246,241,0.38)",
                         textTransform: "uppercase",
                         letterSpacing: "0.26em",
                         marginTop: 4,
@@ -742,31 +745,31 @@ export default function Home() {
                       Online · KG to A-Level · Learn · Grow · Succeed
                     </div>
                     <p
+                      className="als-brand-body"
                       style={{
                         fontSize: "clamp(14px, 1.8vw, 16.5px)",
-                        color: "rgba(255,255,255,0.78)",
                         lineHeight: 1.8,
                         fontWeight: 500,
-                        textShadow: "0 1px 4px rgba(0,0,0,0.3)",
                         marginTop: 18,
                         marginBottom: 0,
                         animation: "als-fadeUp 0.65s ease 0.75s both",
                       }}
                     >
                       An online school built for children who deserve{" "}
-                      <span style={{ color: t.goldL, fontWeight: 700 }}>structure, warmth</span> and real academic
+                      <span style={{ color: t.goldD, fontWeight: 700 }}>structure, warmth</span> and real academic
                       progress.{" "}
-                      <span style={{ color: "rgba(255,255,255,0.6)" }}>
+                      <span style={{ color: t.muted }}>
                         Qualified teachers. A clear curriculum. A platform families trust.
                       </span>
                     </p>
                     <div
+                      className="als-brand-stats"
                       style={{
                         display: "flex",
                         marginTop: 24,
                         borderRadius: 16,
-                        background: "rgba(15,26,60,0.52)",
-                        border: "1px solid rgba(201,168,76,0.2)",
+                        background: "rgba(255,255,255,0.92)",
+                        border: "1px solid rgba(27,43,94,0.1)",
                         backdropFilter: "blur(12px)",
                         overflow: "hidden",
                         width: "100%",
@@ -785,15 +788,15 @@ export default function Home() {
                             flex: 1,
                             padding: "16px 12px",
                             textAlign: "center",
-                            borderRight: i < arr.length - 1 ? "1px solid rgba(201,168,76,0.14)" : "none",
+                            borderRight: i < arr.length - 1 ? "1px solid rgba(27,43,94,0.1)" : "none",
                           }}
                         >
                           <div
+                            className="als-brand-stat-val"
                             style={{
                               fontFamily: "'Playfair Display', serif",
                               fontSize: "clamp(20px,3vw,26px)",
                               fontWeight: 900,
-                              color: t.gold,
                               lineHeight: 1.1,
                               marginBottom: 3,
                             }}
@@ -801,10 +804,10 @@ export default function Home() {
                             {s.val}
                           </div>
                           <div
+                            className="als-brand-stat-label"
                             style={{
                               fontSize: 9.5,
                               fontWeight: 700,
-                              color: "rgba(255,255,255,0.4)",
                               textTransform: "uppercase",
                               letterSpacing: "0.09em",
                             }}
