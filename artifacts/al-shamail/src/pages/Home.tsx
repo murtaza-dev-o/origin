@@ -525,7 +525,7 @@ export default function Home() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.97 }}
             transition={{ duration: 0.75, ease: "easeInOut" }}
-            style={{ position: "absolute", inset: 0 }}
+            style={{ position: "absolute", top: 92, left: 0, right: 0, bottom: 0 }}
           >
             {slide.kind === "brand" ? (
               <>
@@ -538,7 +538,7 @@ export default function Home() {
                     width: "100%",
                     height: "100%",
                     objectFit: "cover",
-                    objectPosition: "center center",
+                    objectPosition: "52% 22%",
                   }}
                 />
                 <div style={{ position: "absolute", inset: 0, background: heroBrandOverlay }} />
@@ -612,7 +612,7 @@ export default function Home() {
                   .als-brand-cols .als-brand-title-row { justify-content:center; }
                   .als-brand-cols .als-gold-line { margin-left:auto; margin-right:auto; }
                   @media (max-width:900px) {
-                    .als-brand-cols { padding:clamp(40px, 5vh, 56px) 20px 56px !important; }
+                    .als-brand-cols { padding:clamp(20px, 3vh, 32px) 20px 56px !important; }
                     .als-brand-title-row { flex-direction:column !important; align-items:center !important; }
                   }
                 `}</style>
@@ -629,7 +629,7 @@ export default function Home() {
                     maxWidth: 1160,
                     margin: "0 auto",
                     height: "100%",
-                    padding: "clamp(48px, 6vh, 72px) 28px clamp(100px, 12vh, 120px)",
+                    padding: "clamp(36px, 4.5vh, 56px) 28px clamp(100px, 12vh, 120px)",
                     boxSizing: "border-box",
                   }}
                 >
