@@ -55,6 +55,9 @@ const t = {
 const heroSlideOverlay =
   "linear-gradient(105deg, rgba(10,22,56,0.44) 0%, rgba(10,22,56,0.28) 48%, rgba(10,22,56,0.09) 100%)";
 
+const heroBrandOverlay =
+  "linear-gradient(105deg, rgba(10,22,56,0.52) 0%, rgba(10,22,56,0.30) 50%, rgba(10,22,56,0.10) 100%)";
+
 const heroBrandGlow =
   "radial-gradient(ellipse 85% 70% at 15% 18%, rgba(201,168,76,0.14) 0%, transparent 55%), radial-gradient(ellipse 60% 50% at 85% 80%, rgba(232,201,106,0.08) 0%, transparent 50%)";
 
@@ -538,7 +541,7 @@ export default function Home() {
                     objectPosition: "center center",
                   }}
                 />
-                <div style={{ position: "absolute", inset: 0, background: heroSlideOverlay }} />
+                <div style={{ position: "absolute", inset: 0, background: heroBrandOverlay }} />
                 <div style={{ position: "absolute", inset: 0, background: heroBrandGlow }} />
                 <div
                   style={{
@@ -598,11 +601,11 @@ export default function Home() {
                   .als-ring-mid::after { content:''; position:absolute; top:7%; right:-5px; width:9px; height:9px; border-radius:50%; background:#C9A84C; box-shadow:0 0 12px rgba(201,168,76,1); }
                   .als-gold-line { height:2.5px; border-radius:99px; background:linear-gradient(90deg,#C9A84C,#E8C96A,#C9A84C,transparent); max-width:280px; animation:als-expandW 0.9s cubic-bezier(0.34,1.56,0.64,1) 0.5s both; }
                   .als-bs-pill { display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:700; color:${t.navy}; padding:6px 12px; border-radius:9px; background:rgba(255,255,255,0.9); border:1px solid rgba(27,43,94,0.12); backdrop-filter:blur(8px); box-shadow:0 2px 12px rgba(27,43,94,0.08); }
-                  .als-brand-text .als-brand-eyebrow { color:${t.goldD}; text-shadow:0 1px 0 rgba(255,255,255,0.8); }
-                  .als-brand-text .als-brand-title { color:${t.navy}; text-shadow:0 1px 0 rgba(255,255,255,0.95), 0 2px 20px rgba(255,255,255,0.7); }
-                  .als-brand-text .als-brand-academy { color:${t.navy}; }
-                  .als-brand-text .als-brand-tagline { color:${t.muted}; }
-                  .als-brand-text .als-brand-body { color:${t.text}; text-shadow:0 1px 0 rgba(255,255,255,0.85); }
+                  .als-brand-text .als-brand-eyebrow { color:${t.goldL}; text-shadow:0 1px 4px rgba(0,0,0,0.5); }
+                  .als-brand-text .als-brand-title { color:#ffffff; text-shadow:0 2px 28px rgba(0,0,0,0.6), 0 1px 3px rgba(0,0,0,0.45); }
+                  .als-brand-text .als-brand-academy { color:rgba(255,255,255,0.92); text-shadow:0 1px 4px rgba(0,0,0,0.4); }
+                  .als-brand-text .als-brand-tagline { color:rgba(255,255,255,0.72); text-shadow:0 1px 3px rgba(0,0,0,0.35); }
+                  .als-brand-text .als-brand-body { color:rgba(255,255,255,0.88); text-shadow:0 1px 4px rgba(0,0,0,0.4); }
                   .als-brand-stats { background:rgba(255,255,255,0.92) !important; border-color:rgba(27,43,94,0.1) !important; box-shadow:0 8px 32px rgba(27,43,94,0.1) !important; }
                   .als-brand-stat-val { color:${t.navy} !important; }
                   .als-brand-stat-label { color:${t.muted} !important; }
@@ -756,9 +759,9 @@ export default function Home() {
                       }}
                     >
                       An online school built for children who deserve{" "}
-                      <span style={{ color: t.goldD, fontWeight: 700 }}>structure, warmth</span> and real academic
+                      <span style={{ color: t.goldL, fontWeight: 700 }}>structure, warmth</span> and real academic
                       progress.{" "}
-                      <span style={{ color: t.muted }}>
+                      <span style={{ color: "rgba(255,255,255,0.68)" }}>
                         Qualified teachers. A clear curriculum. A platform families trust.
                       </span>
                     </p>
