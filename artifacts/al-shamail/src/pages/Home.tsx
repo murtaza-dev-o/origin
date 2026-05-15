@@ -612,7 +612,7 @@ export default function Home() {
                   .als-brand-cols .als-brand-title-row { justify-content:center; }
                   .als-brand-cols .als-gold-line { margin-left:auto; margin-right:auto; }
                   @media (max-width:900px) {
-                    .als-brand-cols { padding:28px 20px 56px !important; }
+                    .als-brand-cols { padding:clamp(40px, 5vh, 56px) 20px 56px !important; }
                     .als-brand-title-row { flex-direction:column !important; align-items:center !important; }
                   }
                 `}</style>
@@ -629,7 +629,7 @@ export default function Home() {
                     maxWidth: 1160,
                     margin: "0 auto",
                     height: "100%",
-                    padding: "clamp(12px, 2vh, 28px) 28px clamp(100px, 12vh, 120px)",
+                    padding: "clamp(48px, 6vh, 72px) 28px clamp(100px, 12vh, 120px)",
                     boxSizing: "border-box",
                   }}
                 >
