@@ -530,7 +530,7 @@ export default function Home() {
             {slide.kind === "brand" ? (
               <>
                 <img
-                  src={publicUrl("hero-8.jpeg")}
+                  src={publicUrl("hero-9.png")}
                   alt=""
                   style={{
                     position: "absolute",
@@ -538,7 +538,7 @@ export default function Home() {
                     width: "100%",
                     height: "100%",
                     objectFit: "cover",
-                    objectPosition: "52% 22%",
+                    objectPosition: "center center",
                   }}
                 />
                 <div style={{ position: "absolute", inset: 0, background: heroBrandOverlay }} />
