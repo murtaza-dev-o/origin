@@ -530,7 +530,7 @@ export default function Home() {
             {slide.kind === "brand" ? (
               <>
                 <img
-                  src={publicUrl("hero-9.png")}
+                  src={publicUrl("hero-10.png")}
                   alt=""
                   style={{
                     position: "absolute",
