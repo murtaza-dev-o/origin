@@ -55,7 +55,7 @@ const t = {
 const heroSlideOverlay =
   "linear-gradient(105deg, rgba(10,22,56,0.44) 0%, rgba(10,22,56,0.28) 48%, rgba(10,22,56,0.09) 100%)";
 
-// Stronger scrim on slide 1 (hero-6 + dense copy) — story slides keep heroSlideOverlay.
+// Stronger scrim on slide 1 (hero-7 + dense copy) — story slides keep heroSlideOverlay.
 const heroBrandSlideOverlay =
   "linear-gradient(105deg, rgba(10,22,56,0.78) 0%, rgba(10,22,56,0.62) 50%, rgba(10,22,56,0.38) 100%)";
 
@@ -531,7 +531,7 @@ export default function Home() {
             {slide.kind === "brand" ? (
               <>
                 <img
-                  src={publicUrl("hero-6.jpeg")}
+                  src={publicUrl("hero-7.jpeg")}
                   alt=""
                   style={{
                     position: "absolute",
