@@ -56,7 +56,7 @@ const heroSlideOverlay =
   "linear-gradient(105deg, rgba(10,22,56,0.44) 0%, rgba(10,22,56,0.28) 48%, rgba(10,22,56,0.09) 100%)";
 
 const heroBrandOverlay =
-  "linear-gradient(105deg, rgba(10,22,56,0.55) 0%, rgba(10,22,56,0.28) 40%, rgba(10,22,56,0.08) 70%, rgba(10,22,56,0.04) 100%)";
+  "linear-gradient(90deg, rgba(10,22,56,0.42) 0%, rgba(10,22,56,0.1) 28%, rgba(10,22,56,0.22) 50%, rgba(10,22,56,0.1) 72%, rgba(10,22,56,0.42) 100%)";
 
 const heroBrandGlow =
   "radial-gradient(ellipse 85% 70% at 15% 18%, rgba(201,168,76,0.14) 0%, transparent 55%), radial-gradient(ellipse 60% 50% at 85% 80%, rgba(232,201,106,0.08) 0%, transparent 50%)";
@@ -538,7 +538,7 @@ export default function Home() {
                     width: "100%",
                     height: "100%",
                     objectFit: "cover",
-                    objectPosition: "right center",
+                    objectPosition: "center center",
                   }}
                 />
                 <div style={{ position: "absolute", inset: 0, background: heroBrandOverlay }} />
@@ -608,11 +608,12 @@ export default function Home() {
                   .als-brand-logo-wrap .als-ring-outer { inset:-10px; }
                   .als-brand-logo-wrap .als-ring-mid { inset:-5px; border-width:1px; }
                   .als-brand-logo-wrap .als-ring-mid::after { width:6px; height:6px; right:-3px; }
+                  .als-brand-cols .als-brand-text { align-items:center; text-align:center; }
+                  .als-brand-cols .als-brand-title-row { justify-content:center; }
+                  .als-brand-cols .als-gold-line { margin-left:auto; margin-right:auto; }
                   @media (max-width:900px) {
                     .als-brand-cols { padding:28px 20px 56px !important; }
-                    .als-brand-cols .als-brand-text { align-items:center !important; text-align:center !important; }
                     .als-brand-title-row { flex-direction:column !important; align-items:center !important; }
-                    .als-gold-line { margin-left:auto !important; margin-right:auto !important; }
                   }
                 `}</style>
                 <div
@@ -622,13 +623,13 @@ export default function Home() {
                     zIndex: 10,
                     display: "flex",
                     flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "flex-start",
+                    alignItems: "flex-start",
+                    justifyContent: "center",
                     width: "100%",
                     maxWidth: 1160,
                     margin: "0 auto",
                     height: "100%",
-                    padding: "clamp(24px, 4vh, 40px) 28px clamp(100px, 12vh, 120px)",
+                    padding: "clamp(12px, 2vh, 28px) 28px clamp(100px, 12vh, 120px)",
                     boxSizing: "border-box",
                   }}
                 >
@@ -637,10 +638,12 @@ export default function Home() {
                     style={{
                       flex: "0 1 auto",
                       minWidth: 0,
-                      maxWidth: 560,
+                      maxWidth: 480,
+                      width: "100%",
+                      margin: "0 auto",
                       display: "flex",
                       flexDirection: "column",
-                      alignItems: "flex-start",
+                      alignItems: "center",
                       gap: 0,
                     }}
                   >
