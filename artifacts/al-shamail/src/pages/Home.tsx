@@ -16,6 +16,7 @@ import {
   Award,
 } from "lucide-react";
 import { createLucideIcon } from "lucide-react";
+import BrandSlide from "./BrandSlide";
 
 // ─── Custom Icons ────────────────────────────────────────────────────────────
 const CircleCheckBig = createLucideIcon("circle-check-big", [
@@ -55,20 +56,11 @@ const t = {
 const heroSlideOverlay =
   "linear-gradient(105deg, rgba(10,22,56,0.44) 0%, rgba(10,22,56,0.28) 48%, rgba(10,22,56,0.09) 100%)";
 
-// Navy-only canvas for the opening brand slide (no photo asset).
-const heroBrandBackdrop = `linear-gradient(148deg, ${t.navyD} 0%, ${t.navy} 38%, #1e2f6a 72%, ${t.navyD} 100%)`;
-const heroBrandGlow =
-  "radial-gradient(ellipse 85% 70% at 15% 18%, rgba(201,168,76,0.14) 0%, transparent 55%), radial-gradient(ellipse 60% 50% at 85% 80%, rgba(232,201,106,0.08) 0%, transparent 50%)";
-
-// Slide 0 = brand (gradient only). Then hero-4 / hero-1 / hero-5 story slides.
+// Slide 0 = brand (BrandSlide component). Then hero-4 / hero-1 / hero-5 story slides.
 const slides = [
   {
     kind: "brand" as const,
     id: 0,
-    blurb:
-      "Al Shamail International Academy is an online school built for children who deserve structure, warmth, and real academic progress. We combine qualified teachers, a clear curriculum, and a motivating platform so families everywhere can learn with confidence.",
-    cta: "Get Started",
-    accent: t.gold,
   },
   {
     kind: "story" as const,
@@ -290,8 +282,6 @@ export default function Home() {
           .als-gamif-grid { grid-template-columns:1fr !important; gap:32px !important; }
           .als-stats-grid { grid-template-columns:repeat(2,1fr) !important; }
           .als-footer-grid { grid-template-columns:1fr !important; gap:28px !important; }
-          .als-brand-hero-row { flex-direction:column !important; align-items:center !important; text-align:center !important; }
-          .als-brand-blurb { text-align:center !important; border-left:none !important; padding-left:0 !important; max-width:100% !important; margin-top:16px !important; }
         }
       `}</style>
 
@@ -533,39 +523,7 @@ export default function Home() {
             style={{ position: "absolute", inset: 0 }}
           >
             {slide.kind === "brand" ? (
-              <>
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    background: heroBrandBackdrop,
-                  }}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    background: heroBrandGlow,
-                  }}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    opacity: 0.04,
-                    backgroundImage: `radial-gradient(circle at 20% 80%, ${t.gold} 1px, transparent 1px), radial-gradient(circle at 80% 20%, ${t.goldL} 1px, transparent 1px)`,
-                    backgroundSize: "60px 60px",
-                  }}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    background: "radial-gradient(ellipse 75% 85% at 50% 50%, transparent 35%, rgba(10,18,48,0.45) 100%)",
-                    pointerEvents: "none",
-                  }}
-                />
-              </>
+              <BrandSlide />
             ) : (
               <>
                 <img
@@ -595,6 +553,7 @@ export default function Home() {
           </motion.div>
         </AnimatePresence>
 
+        {!isBrandSlide ? (
         <div
           style={{
             position: "relative",
@@ -604,7 +563,7 @@ export default function Home() {
             padding: "0 28px",
             height: "100%",
             display: "flex",
-            alignItems: isBrandSlide ? "center" : "flex-start",
+            alignItems: "flex-start",
             justifyContent: "flex-start",
             flexDirection: "column",
             paddingTop: "clamp(6px, 1.25vh, 14px)",
@@ -619,8 +578,7 @@ export default function Home() {
               display: "flex",
               flexDirection: "column",
               width: "100%",
-              maxWidth: isBrandSlide ? 1040 : 640,
-              alignSelf: isBrandSlide ? "center" : "flex-start",
+              maxWidth: 640,
             }}
           >
             <AnimatePresence mode="wait">
@@ -631,125 +589,15 @@ export default function Home() {
                 exit={{ opacity: 0, y: -16 }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
                 style={{
-              maxWidth: isBrandSlide ? 1040 : 640,
+              maxWidth: 640,
               width: "100%",
               flex: 1,
               minHeight: 0,
               display: "flex",
               flexDirection: "column",
-              alignItems: isBrandSlide ? "stretch" : "flex-start",
-              textAlign: isBrandSlide ? "left" : "left",
+              alignItems: "flex-start",
             }}
           >
-            {slide.kind === "brand" ? (
-              <>
-                <div
-                  className="als-brand-hero-row"
-                  style={{
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "clamp(24px, 4vw, 48px)",
-                    width: "100%",
-                    flex: "1 1 auto",
-                    minHeight: 0,
-                  }}
-                >
-                  <div
-                    style={{
-                      flex: "0 1 320px",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      textAlign: "center",
-                    }}
-                  >
-                    <img
-                      src={publicUrl("logo.jpeg")}
-                      alt="Al Shamail International Academy"
-                      style={{
-                        width: "clamp(148px, 22vw, 220px)",
-                        height: "auto",
-                        objectFit: "contain",
-                        marginBottom: 20,
-                        filter: "drop-shadow(0 10px 28px rgba(0,0,0,.4))",
-                      }}
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none";
-                      }}
-                    />
-                    <div
-                      style={{
-                        fontFamily: "'Playfair Display', Georgia, serif",
-                        fontSize: "clamp(36px, 5.5vw, 64px)",
-                        fontWeight: 900,
-                        color: t.white,
-                        lineHeight: 1.05,
-                        letterSpacing: "-0.02em",
-                        marginBottom: 8,
-                        textShadow: "0 2px 32px rgba(0,0,0,.55), 0 1px 2px rgba(0,0,0,.4)",
-                      }}
-                    >
-                      Al Shamail
-                    </div>
-                    <div
-                      style={{
-                        fontSize: "clamp(10px, 1.5vw, 13px)",
-                        fontWeight: 700,
-                        color: t.gold,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.2em",
-                        marginBottom: 6,
-                      }}
-                    >
-                      International Academy
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 9.5,
-                        fontWeight: 600,
-                        color: "rgba(248,246,241,0.55)",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.22em",
-                      }}
-                    >
-                      Online
-                    </div>
-                  </div>
-                  <div
-                    className="als-brand-blurb"
-                    style={{
-                      flex: "1 1 280px",
-                      minWidth: 0,
-                      maxWidth: 460,
-                      textAlign: "left",
-                      padding: "20px 22px",
-                      borderRadius: 16,
-                      background: "rgba(15,26,60,0.35)",
-                      border: "1px solid rgba(255,255,255,0.1)",
-                      backdropFilter: "blur(8px)",
-                      alignSelf: "stretch",
-                      display: "flex",
-                      alignItems: "center",
-                    }}
-                  >
-                    <p
-                      style={{
-                        fontSize: "clamp(14px, 1.65vw, 16px)",
-                        color: "rgba(255,255,255,.9)",
-                        lineHeight: 1.72,
-                        margin: 0,
-                        fontWeight: 500,
-                        textShadow: "0 1px 3px rgba(0,0,0,.35)",
-                      }}
-                    >
-                      {slide.blurb}
-                    </p>
-                  </div>
-                </div>
-              </>
-            ) : (
                   <>
                     <h1
                       style={{
@@ -779,13 +627,11 @@ export default function Home() {
                       {slide.sub}
                     </p>
                   </>
-                )}
                 <div
                   style={{
                     display: "flex",
                     gap: 14,
                     flexWrap: "wrap",
-                    justifyContent: isBrandSlide ? "center" : "flex-start",
                   }}
                 >
                   <button type="button" className="als-btn-gold" onClick={goApply} style={{ fontSize: 15, padding: "14px 32px" }}>
@@ -805,7 +651,6 @@ export default function Home() {
                     gap: 10,
                     flexWrap: "wrap",
                     paddingTop: "clamp(16px, 2.5vh, 28px)",
-                    justifyContent: isBrandSlide ? "center" : "flex-start",
                     width: "100%",
                   }}
                 >
@@ -836,6 +681,7 @@ export default function Home() {
             </AnimatePresence>
           </div>
         </div>
+        ) : null}
 
         <button
           type="button"
@@ -922,11 +768,13 @@ export default function Home() {
           ))}
         </div>
 
-        <div style={{ position: "absolute", bottom: -2, left: 0, right: 0, zIndex: 5 }}>
-          <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: "block", width: "100%" }}>
-            <path d="M0 80L1440 80L1440 30C1200 70 960 10 720 40C480 70 240 10 0 30L0 80Z" fill={t.offW} />
-          </svg>
-        </div>
+        {!isBrandSlide ? (
+          <div style={{ position: "absolute", bottom: -2, left: 0, right: 0, zIndex: 5 }}>
+            <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: "block", width: "100%" }}>
+              <path d="M0 80L1440 80L1440 30C1200 70 960 10 720 40C480 70 240 10 0 30L0 80Z" fill={t.offW} />
+            </svg>
+          </div>
+        ) : null}
       </section>
 
       <section style={{ background: t.navy }}>
