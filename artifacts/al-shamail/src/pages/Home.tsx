@@ -56,10 +56,10 @@ const heroSlideOverlay =
   "linear-gradient(105deg, rgba(10,22,56,0.44) 0%, rgba(10,22,56,0.28) 48%, rgba(10,22,56,0.09) 100%)";
 
 const heroBrandOverlay =
-  "linear-gradient(90deg, rgba(10,22,56,0.42) 0%, rgba(10,22,56,0.1) 28%, rgba(10,22,56,0.22) 50%, rgba(10,22,56,0.1) 72%, rgba(10,22,56,0.42) 100%)";
+  "linear-gradient(90deg, rgba(10,22,56,0.5) 0%, rgba(10,22,56,0.32) 30%, rgba(10,22,56,0.22) 50%, rgba(10,22,56,0.1) 72%, rgba(10,22,56,0.42) 100%)";
 
 const heroBrandGlow =
-  "radial-gradient(ellipse 85% 70% at 15% 18%, rgba(201,168,76,0.14) 0%, transparent 55%), radial-gradient(ellipse 60% 50% at 85% 80%, rgba(232,201,106,0.08) 0%, transparent 50%)";
+  "radial-gradient(ellipse 55% 45% at 82% 78%, rgba(232,201,106,0.06) 0%, transparent 50%)";
 
 // Slide 0 = brand (inline layout). Then hero-4 / hero-1 / hero-5 story slides.
 const slides = [
@@ -217,7 +217,7 @@ export default function Home() {
 
   const startAutoplay = useCallback(() => {
     if (autoplayRef.current) clearInterval(autoplayRef.current);
-    autoplayRef.current = setInterval(() => setSlideIdx((i) => (i + 1) % slides.length), 7500);
+    autoplayRef.current = setInterval(() => setSlideIdx((i) => (i + 1) % slides.length), 8000);
   }, []);
 
   useEffect(() => {
@@ -539,22 +539,11 @@ export default function Home() {
                     height: "100%",
                     objectFit: "cover",
                     objectPosition: "center center",
+                    filter: "saturate(0.94) contrast(1.02)",
                   }}
                 />
                 <div style={{ position: "absolute", inset: 0, background: heroBrandOverlay }} />
                 <div style={{ position: "absolute", inset: 0, background: heroBrandGlow }} />
-                <div
-                  style={{
-                    position: "absolute",
-                    width: 500,
-                    height: 500,
-                    borderRadius: "50%",
-                    background: "radial-gradient(ellipse, rgba(201,168,76,0.16) 0%, transparent 65%)",
-                    top: -80,
-                    left: -60,
-                    pointerEvents: "none",
-                  }}
-                />
                 <div
                   style={{
                     position: "absolute",
