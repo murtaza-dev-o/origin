@@ -139,15 +139,6 @@ const features = [
   },
 ];
 
-const courses = [
-  { emoji: "🔢", title: "Mathematics – Primary Level", level: "Ages 5–11", students: "2,100+", color: t.gold },
-  { emoji: "📝", title: "English Language & Literacy", level: "All Ages", students: "1,840+", color: "#60a5fa" },
-  { emoji: "🔬", title: "Science Explorers", level: "Ages 7–13", students: "1,320+", color: "#4ade80" },
-  { emoji: "🌍", title: "Geography & World Studies", level: "Ages 8–14", students: "780+", color: t.goldL },
-  { emoji: "📖", title: "Reading & Comprehension", level: "Ages 5–10", students: "1,560+", color: "#f472b6" },
-  { emoji: "💡", title: "Critical Thinking & Problem Solving", level: "Ages 9–14", students: "640+", color: "#a78bfa" },
-];
-
 const stats = [
   { val: "10K+", label: "Happy Students", icon: <Users size={22} /> },
   { val: "300+", label: "Expert Teachers", icon: <GraduationCap size={22} /> },
@@ -183,6 +174,207 @@ function StarRating({ n = 5 }: { n?: number }) {
         <Star key={i} size={14} fill={t.gold} color={t.gold} />
       ))}
     </div>
+  );
+}
+
+// ─── Activities Gallery ───────────────────────────────────────────────────────
+const activityImages: string[] = [
+  publicUrl("home-1.jpeg"),
+  publicUrl("home-2.jpeg"),
+  publicUrl("home-3.jpeg"),
+  publicUrl("home-4.jpeg"),
+];
+
+const PLACEHOLDER_COUNT = 15;
+
+function ActivitiesGallery() {
+  const images = activityImages.length > 0 ? activityImages : Array.from({ length: PLACEHOLDER_COUNT }, () => null as string | null);
+  const total = images.length;
+
+  const [current, setCurrent] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const resetTimer = useCallback(
+    (next: number) => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      timerRef.current = setInterval(() => setCurrent((c) => (c + 1) % total), 4000);
+      setCurrent(next);
+    },
+    [total]
+  );
+
+  useEffect(() => {
+    timerRef.current = setInterval(() => setCurrent((c) => (c + 1) % total), 4000);
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [total]);
+
+  const prev = () => resetTimer((current - 1 + total) % total);
+  const next = () => resetTimer((current + 1) % total);
+  const goTo = (i: number) => resetTimer(i);
+
+  return (
+    <section style={{ padding: "96px 28px", background: "#fff" }}>
+      <div style={{ maxWidth: 1160, margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: 52 }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: t.gold, textTransform: "uppercase", letterSpacing: ".14em", marginBottom: 10 }}>
+            Kids Activities
+          </div>
+          <h2
+            style={{
+              fontSize: "clamp(26px, 4vw, 40px)",
+              fontWeight: 900,
+              color: t.navy,
+              fontFamily: "'Playfair Display', serif",
+              lineHeight: 1.15,
+            }}
+          >
+            Holding Regular Activities for Kids
+          </h2>
+          <div
+            style={{
+              width: 52,
+              height: 3,
+              borderRadius: 99,
+              background: `linear-gradient(90deg, ${t.gold}, ${t.goldL})`,
+              marginTop: 14,
+              marginLeft: "auto",
+              marginRight: "auto",
+            }}
+          />
+        </div>
+
+        <div style={{ position: "relative", borderRadius: 24, overflow: "hidden", boxShadow: "0 20px 60px rgba(27,43,94,.14)" }}>
+          <div style={{ position: "relative", width: "100%", aspectRatio: "16/7", background: t.navy, overflow: "hidden" }}>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={current}
+                initial={{ opacity: 0, scale: 1.04 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.97 }}
+                transition={{ duration: 0.55, ease: "easeInOut" }}
+                style={{ position: "absolute", inset: 0 }}
+              >
+                {images[current] ? (
+                  <img
+                    src={images[current]!}
+                    alt={`Activity ${current + 1}`}
+                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      background: "#000",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 12,
+                    }}
+                  >
+                    <div style={{ fontSize: 13, color: "rgba(255,255,255,.3)", fontWeight: 600, letterSpacing: ".06em" }}>
+                      Photo {current + 1} of {total}
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
+
+            {(["prev", "next"] as const).map((dir) => (
+              <button
+                key={dir}
+                type="button"
+                aria-label={dir === "prev" ? "Previous photo" : "Next photo"}
+                onClick={dir === "prev" ? prev : next}
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  [dir === "prev" ? "left" : "right"]: 20,
+                  transform: "translateY(-50%)",
+                  zIndex: 10,
+                  width: 48,
+                  height: 48,
+                  borderRadius: "50%",
+                  border: "1.5px solid rgba(255,255,255,.35)",
+                  background: "rgba(0,0,0,.38)",
+                  backdropFilter: "blur(8px)",
+                  color: "#fff",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  transition: "background .2s, border-color .2s",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background = "rgba(201,168,76,.55)";
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = t.gold;
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background = "rgba(0,0,0,.38)";
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,.35)";
+                }}
+              >
+                {dir === "prev" ? <ChevronLeft size={22} /> : <ChevronRight size={22} />}
+              </button>
+            ))}
+
+            <div
+              style={{
+                position: "absolute",
+                top: 18,
+                right: 18,
+                zIndex: 10,
+                background: "rgba(0,0,0,.5)",
+                backdropFilter: "blur(6px)",
+                border: "1px solid rgba(255,255,255,.18)",
+                borderRadius: 20,
+                padding: "5px 14px",
+                fontSize: 13,
+                fontWeight: 700,
+                color: "#fff",
+              }}
+            >
+              {current + 1} / {total}
+            </div>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: 8,
+              padding: "18px 24px",
+              background: t.navy,
+              flexWrap: "wrap",
+            }}
+          >
+            {images.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                aria-label={`Go to photo ${i + 1}`}
+                onClick={() => goTo(i)}
+                style={{
+                  width: i === current ? 24 : 8,
+                  height: 8,
+                  borderRadius: 99,
+                  border: "none",
+                  background: i === current ? t.gold : "rgba(255,255,255,.25)",
+                  cursor: "pointer",
+                  padding: 0,
+                  transition: "all .3s",
+                  flexShrink: 0,
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -1191,122 +1383,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section style={{ padding: "96px 28px", background: "#fff" }}>
-        <div style={{ maxWidth: 1160, margin: "0 auto" }}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-end",
-              marginBottom: 52,
-              flexWrap: "wrap",
-              gap: 16,
-            }}
-          >
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 800, color: t.gold, textTransform: "uppercase", letterSpacing: ".14em", marginBottom: 10 }}>Our Courses</div>
-              <h2 style={{ fontSize: "clamp(26px, 4vw, 40px)", fontWeight: 900, color: t.navy, fontFamily: "'Playfair Display', serif" }}>Subjects for Every Child</h2>
-              <div style={{ width: 52, height: 3, borderRadius: 99, background: `linear-gradient(90deg, ${t.gold}, ${t.goldL})`, marginTop: 14 }} />
-            </div>
-            <button type="button" className="als-btn-navy" onClick={goApply}>
-              View All Courses <ArrowRight size={15} />
-            </button>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px,1fr))", gap: 20 }}>
-            {courses.map((c, i) => (
-              <motion.div
-                key={c.title}
-                className="als-course-card"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.07 }}
-                onClick={goApply}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    goApply();
-                  }
-                }}
-                role="button"
-                tabIndex={0}
-              >
-                <div style={{ height: 8, background: `linear-gradient(90deg, ${c.color}, ${c.color}99)` }} />
-                <div style={{ padding: "22px 22px 20px" }}>
-                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 16 }}>
-                    <div
-                      style={{
-                        width: 52,
-                        height: 52,
-                        borderRadius: 14,
-                        background: `${c.color}15`,
-                        border: `1px solid ${c.color}33`,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 26,
-                      }}
-                    >
-                      {c.emoji}
-                    </div>
-                    <span
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 800,
-                        padding: "4px 10px",
-                        borderRadius: 6,
-                        background: `${c.color}15`,
-                        color: c.color,
-                        textTransform: "uppercase",
-                        letterSpacing: ".05em",
-                      }}
-                    >
-                      {c.level}
-                    </span>
-                  </div>
-                  <h3 style={{ fontSize: 15, fontWeight: 800, color: t.navy, marginBottom: 12, lineHeight: 1.3 }}>{c.title}</h3>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: t.muted, fontWeight: 600 }}>
-                      <Users size={13} /> {c.students} students
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                      <Star size={12} fill={t.gold} color={t.gold} />
-                      <span style={{ fontSize: 12, fontWeight: 700, color: t.gold }}>4.9</span>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      goApply();
-                    }}
-                    style={{
-                      marginTop: 16,
-                      width: "100%",
-                      padding: "10px 0",
-                      borderRadius: 10,
-                      border: `1.5px solid ${c.color}55`,
-                      background: `${c.color}08`,
-                      color: c.color,
-                      fontSize: 13,
-                      fontWeight: 800,
-                      cursor: "pointer",
-                      fontFamily: "inherit",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 6,
-                      transition: "all .15s",
-                    }}
-                  >
-                    Enroll Now <ArrowRight size={13} />
-                  </button>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <ActivitiesGallery />
 
       <section
         style={{
