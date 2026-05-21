@@ -178,12 +178,7 @@ function StarRating({ n = 5 }: { n?: number }) {
 }
 
 // ─── Activities Gallery ───────────────────────────────────────────────────────
-const activityImages: string[] = [
-  publicUrl("home-1.jpeg"),
-  publicUrl("home-2.jpeg"),
-  publicUrl("home-3.jpeg"),
-  publicUrl("home-4.jpeg"),
-];
+const activityImages: string[] = Array.from({ length: 12 }, (_, i) => publicUrl(`home-${i + 1}.jpeg`));
 
 const PLACEHOLDER_COUNT = 15;
 
@@ -246,21 +241,52 @@ function ActivitiesGallery() {
         </div>
 
         <div style={{ position: "relative", borderRadius: 24, overflow: "hidden", boxShadow: "0 20px 60px rgba(27,43,94,.14)" }}>
-          <div style={{ position: "relative", width: "100%", aspectRatio: "16/7", background: t.navy, overflow: "hidden" }}>
+          <div
+            style={{
+              position: "relative",
+              width: "100%",
+              minHeight: "clamp(280px, 42vw, 520px)",
+              aspectRatio: "4/3",
+              maxHeight: 560,
+              background: `linear-gradient(180deg, ${t.light} 0%, #eef1f7 100%)`,
+              overflow: "hidden",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <AnimatePresence mode="wait">
               <motion.div
                 key={current}
-                initial={{ opacity: 0, scale: 1.04 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.97 }}
-                transition={{ duration: 0.55, ease: "easeInOut" }}
-                style={{ position: "absolute", inset: 0 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.45, ease: "easeInOut" }}
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "clamp(12px, 2vw, 20px)",
+                  boxSizing: "border-box",
+                }}
               >
                 {images[current] ? (
                   <img
                     src={images[current]!}
                     alt={`Activity ${current + 1}`}
-                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                    style={{
+                      maxWidth: "100%",
+                      maxHeight: "100%",
+                      width: "auto",
+                      height: "auto",
+                      objectFit: "contain",
+                      objectPosition: "center center",
+                      display: "block",
+                      borderRadius: 8,
+                      boxShadow: "0 8px 28px rgba(27,43,94,.12)",
+                    }}
                   />
                 ) : (
                   <div
