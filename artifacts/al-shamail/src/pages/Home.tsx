@@ -56,7 +56,7 @@ const heroSlideOverlay =
   "linear-gradient(105deg, rgba(10,22,56,0.44) 0%, rgba(10,22,56,0.28) 48%, rgba(10,22,56,0.09) 100%)";
 
 const heroBrandOverlay =
-  "linear-gradient(90deg, rgba(10,22,56,0.5) 0%, rgba(10,22,56,0.32) 30%, rgba(10,22,56,0.22) 50%, rgba(10,22,56,0.1) 72%, rgba(10,22,56,0.42) 100%)";
+  "linear-gradient(90deg, rgba(10,22,56,0.34) 0%, rgba(10,22,56,0.16) 30%, rgba(10,22,56,0.12) 50%, rgba(10,22,56,0.06) 72%, rgba(10,22,56,0.34) 100%)";
 
 const heroBrandGlow =
   "radial-gradient(ellipse 55% 45% at 82% 78%, rgba(232,201,106,0.06) 0%, transparent 50%)";
@@ -539,7 +539,7 @@ export default function Home() {
                     height: "100%",
                     objectFit: "cover",
                     objectPosition: "center center",
-                    filter: "saturate(0.94) contrast(1.02)",
+                    filter: "brightness(1.04) contrast(1.02)",
                   }}
                 />
                 <div style={{ position: "absolute", inset: 0, background: heroBrandOverlay }} />
