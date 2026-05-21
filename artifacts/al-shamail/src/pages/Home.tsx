@@ -56,10 +56,17 @@ const heroSlideOverlay =
   "linear-gradient(105deg, rgba(10,22,56,0.44) 0%, rgba(10,22,56,0.28) 48%, rgba(10,22,56,0.09) 100%)";
 
 const heroBrandOverlay =
-  "linear-gradient(90deg, rgba(10,22,56,0.34) 0%, rgba(10,22,56,0.16) 30%, rgba(10,22,56,0.12) 50%, rgba(10,22,56,0.06) 72%, rgba(10,22,56,0.34) 100%)";
+  "linear-gradient(90deg, rgba(10,22,56,0.2) 0%, rgba(10,22,56,0.07) 30%, rgba(10,22,56,0.02) 50%, rgba(10,22,56,0.03) 72%, rgba(10,22,56,0.2) 100%)";
 
 const heroBrandGlow =
   "radial-gradient(ellipse 55% 45% at 82% 78%, rgba(232,201,106,0.06) 0%, transparent 50%)";
+
+// Masked boost on the physical globe only (center of hero-10.png).
+const heroBrandGlobeMask =
+  "radial-gradient(ellipse 24% 30% at 50% 46%, #000 0%, #000 42%, transparent 74%)";
+const heroBrandGlobeFilter = "saturate(1.14) brightness(1.16) contrast(1.02)";
+const heroBrandGlobeLift =
+  "radial-gradient(ellipse 26% 32% at 50% 46%, rgba(255,252,245,0.28) 0%, rgba(200,225,245,0.1) 48%, transparent 72%)";
 
 // Slide 0 = brand (inline layout). Then hero-4 / hero-1 / hero-5 story slides.
 const slides = [
@@ -542,6 +549,23 @@ export default function Home() {
                     filter: "brightness(1.04) contrast(1.02)",
                   }}
                 />
+                <img
+                  src={publicUrl("hero-10.png")}
+                  alt=""
+                  aria-hidden
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    objectPosition: "center center",
+                    filter: heroBrandGlobeFilter,
+                    WebkitMaskImage: heroBrandGlobeMask,
+                    maskImage: heroBrandGlobeMask,
+                    pointerEvents: "none",
+                  }}
+                />
                 <div style={{ position: "absolute", inset: 0, background: heroBrandOverlay }} />
                 <div style={{ position: "absolute", inset: 0, background: heroBrandGlow }} />
                 <div
@@ -570,7 +594,19 @@ export default function Home() {
                   style={{
                     position: "absolute",
                     inset: 0,
-                    background: "radial-gradient(ellipse 90% 90% at 50% 50%, transparent 35%, rgba(8,14,40,0.28) 100%)",
+                    background: "radial-gradient(ellipse 90% 90% at 50% 50%, transparent 52%, rgba(8,14,40,0.1) 100%)",
+                    pointerEvents: "none",
+                  }}
+                />
+                <div
+                  aria-hidden
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    background: heroBrandGlobeLift,
+                    mixBlendMode: "screen",
+                    WebkitMaskImage: heroBrandGlobeMask,
+                    maskImage: heroBrandGlobeMask,
                     pointerEvents: "none",
                   }}
                 />
@@ -589,11 +625,11 @@ export default function Home() {
                   .als-ring-mid   { position:absolute; inset:-12px; border-radius:50%; border:1.5px solid rgba(201,168,76,0.28); animation:als-rotateSlow 16s linear infinite; }
                   .als-ring-mid::after { content:''; position:absolute; top:7%; right:-5px; width:9px; height:9px; border-radius:50%; background:#C9A84C; box-shadow:0 0 12px rgba(201,168,76,1); }
                   .als-gold-line { height:2.5px; border-radius:99px; background:linear-gradient(90deg,#C9A84C,#E8C96A,#C9A84C,transparent); max-width:280px; animation:als-expandW 0.9s cubic-bezier(0.34,1.56,0.64,1) 0.5s both; }
-                  .als-brand-text .als-brand-eyebrow { color:${t.goldL}; text-shadow:0 1px 4px rgba(0,0,0,0.5); }
+                  .als-brand-text .als-brand-eyebrow { color:#ffffff; text-shadow:0 1px 4px rgba(0,0,0,0.5); }
                   .als-brand-text .als-brand-title { color:#ffffff; text-shadow:0 2px 28px rgba(0,0,0,0.6), 0 1px 3px rgba(0,0,0,0.45); }
-                  .als-brand-text .als-brand-academy { color:rgba(255,255,255,0.92); text-shadow:0 1px 4px rgba(0,0,0,0.4); }
-                  .als-brand-text .als-brand-tagline { color:rgba(255,255,255,0.72); text-shadow:0 1px 3px rgba(0,0,0,0.35); }
-                  .als-brand-text .als-brand-body { color:rgba(255,255,255,0.88); text-shadow:0 1px 4px rgba(0,0,0,0.4); }
+                  .als-brand-text .als-brand-academy { color:#ffffff; text-shadow:0 1px 4px rgba(0,0,0,0.4); }
+                  .als-brand-text .als-brand-tagline { color:#ffffff; text-shadow:0 1px 3px rgba(0,0,0,0.35); }
+                  .als-brand-text .als-brand-body { color:#ffffff; text-shadow:0 1px 4px rgba(0,0,0,0.4); }
                   .als-brand-logo-wrap .als-ring-outer { inset:-10px; }
                   .als-brand-logo-wrap .als-ring-mid { inset:-5px; border-width:1px; }
                   .als-brand-logo-wrap .als-ring-mid::after { width:6px; height:6px; right:-3px; }
@@ -601,7 +637,7 @@ export default function Home() {
                   .als-brand-cols .als-brand-title-row { justify-content:center; }
                   .als-brand-cols .als-gold-line { margin-left:auto; margin-right:auto; }
                   @media (max-width:900px) {
-                    .als-brand-cols { padding:clamp(20px, 3vh, 32px) 20px 56px !important; }
+                    .als-brand-cols { padding:clamp(64px, 9vh, 92px) 20px 56px !important; }
                     .als-brand-title-row { flex-direction:column !important; align-items:center !important; }
                   }
                 `}</style>
@@ -613,12 +649,12 @@ export default function Home() {
                     display: "flex",
                     flexDirection: "row",
                     alignItems: "flex-start",
-                    justifyContent: "center",
+                    justifyContent: "flex-start",
                     width: "100%",
                     maxWidth: 1160,
                     margin: "0 auto",
                     height: "100%",
-                    padding: "clamp(36px, 4.5vh, 56px) 28px clamp(100px, 12vh, 120px)",
+                    padding: "clamp(96px, 11.5vh, 140px) 28px clamp(100px, 12vh, 120px)",
                     boxSizing: "border-box",
                   }}
                 >
@@ -630,6 +666,7 @@ export default function Home() {
                       maxWidth: 480,
                       width: "100%",
                       margin: "0 auto",
+                      marginTop: "clamp(32px, 4vh, 52px)",
                       display: "flex",
                       flexDirection: "column",
                       alignItems: "center",
@@ -760,9 +797,9 @@ export default function Home() {
                       }}
                     >
                       An online school built for children who deserve{" "}
-                      <span style={{ color: t.goldL, fontWeight: 700 }}>structure, warmth</span> and real academic
+                      <span style={{ color: "#ffffff", fontWeight: 700 }}>structure, warmth</span> and real academic
                       progress.{" "}
-                      <span style={{ color: "rgba(255,255,255,0.68)" }}>
+                      <span style={{ color: "#ffffff" }}>
                         Qualified teachers. A clear curriculum. A platform families trust.
                       </span>
                     </p>
