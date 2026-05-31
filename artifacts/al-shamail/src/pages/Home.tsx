@@ -139,13 +139,6 @@ const features = [
   },
 ];
 
-const stats = [
-  { val: "10K+", label: "Happy Students", icon: <Users size={22} /> },
-  { val: "300+", label: "Expert Teachers", icon: <GraduationCap size={22} /> },
-  { val: "150+", label: "Subjects & Courses", icon: <BookOpen size={22} /> },
-  { val: "97%", label: "Parent Satisfaction", icon: <Star size={22} /> },
-];
-
 const testimonials = [
   {
     name: "Shazia Kashif",
@@ -236,8 +229,12 @@ function ActivitiesGallery() {
               marginTop: 14,
               marginLeft: "auto",
               marginRight: "auto",
+              marginBottom: 20,
             }}
           />
+          <p style={{ fontSize: 15, color: t.muted, lineHeight: 1.75, maxWidth: 560, margin: "0 auto" }}>
+            Beyond the classroom, we run regular enrichment activities — from storytelling and art workshops to science experiments and seasonal celebrations — keeping children inspired, social, and excited to learn.
+          </p>
         </div>
 
         <div style={{ position: "relative", borderRadius: 24, overflow: "hidden", boxShadow: "0 20px 60px rgba(27,43,94,.14)" }}>
@@ -510,7 +507,6 @@ export default function Home() {
         @media (max-width:900px) {
           .als-nav-links { display:none !important; }
           .als-gamif-grid { grid-template-columns:1fr !important; gap:32px !important; }
-          .als-stats-grid { grid-template-columns:repeat(2,1fr) !important; }
           .als-footer-grid { grid-template-columns:1fr !important; gap:28px !important; }
         }
       `}</style>
@@ -1323,41 +1319,6 @@ export default function Home() {
         ) : null}
       </section>
 
-      <section style={{ background: t.navy }}>
-        <div style={{ maxWidth: 1160, margin: "0 auto", padding: "0 28px" }}>
-          <div className="als-stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 0 }}>
-            {stats.map((s, i) => (
-              <motion.div
-                key={s.label}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                style={{
-                  padding: "36px 20px",
-                  textAlign: "center",
-                  borderRight: i < stats.length - 1 ? "1px solid rgba(201,168,76,.2)" : "none",
-                }}
-              >
-                <div style={{ color: t.gold, display: "flex", justifyContent: "center", marginBottom: 10 }}>{s.icon}</div>
-                <div style={{ fontSize: 32, fontWeight: 900, color: t.white, fontFamily: "'Playfair Display', serif", marginBottom: 4 }}>{s.val}</div>
-                <div
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: "rgba(255,255,255,.55)",
-                    textTransform: "uppercase",
-                    letterSpacing: ".08em",
-                  }}
-                >
-                  {s.label}
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       <section style={{ padding: "96px 28px", background: t.offW }}>
         <div style={{ maxWidth: 1160, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 64 }}>
@@ -1410,6 +1371,103 @@ export default function Home() {
       </section>
 
       <ActivitiesGallery />
+
+      {/* ── Fee Details Section ────────────────────────────────────────────── */}
+      <section style={{ padding: "96px 28px", background: t.white, position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: -80, right: -80, width: 400, height: 400, borderRadius: "50%", border: "1px solid rgba(201,168,76,.1)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", bottom: -60, left: -60, width: 280, height: 280, borderRadius: "50%", border: "1px solid rgba(201,168,76,.07)", pointerEvents: "none" }} />
+        <div
+          style={{
+            maxWidth: 1160,
+            margin: "0 auto",
+            position: "relative",
+            zIndex: 1,
+            background: t.white,
+            borderRadius: 20,
+            padding: "36px",
+            boxSizing: "border-box",
+          }}
+        >
+          <div style={{ textAlign: "center", marginBottom: 52 }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: t.gold, textTransform: "uppercase", letterSpacing: ".14em", marginBottom: 12 }}>
+              Tuition &amp; Fees
+            </div>
+            <h2
+              style={{
+                fontSize: "clamp(28px, 4vw, 42px)",
+                fontWeight: 900,
+                color: t.navy,
+                fontFamily: "'Playfair Display', serif",
+                lineHeight: 1.15,
+                marginBottom: 0,
+              }}
+            >
+              Clear, Transparent Pricing
+            </h2>
+            <div style={{ width: 52, height: 3, borderRadius: 99, background: `linear-gradient(90deg, ${t.gold}, ${t.goldL})`, margin: "16px auto 20px" }} />
+            <p style={{ fontSize: 16, color: t.muted, lineHeight: 1.75, maxWidth: 520, margin: "0 auto" }}>
+              We believe every family deserves to know exactly what they&apos;re paying for. View our full fee schedule, payment plans, and sibling discounts — all in one place.
+            </p>
+          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 28,
+              background: t.navy,
+              border: `1px solid ${t.navyL}`,
+              borderRadius: 20,
+              padding: "36px 48px",
+              flexWrap: "wrap",
+              color: "#fff",
+            }}
+          >
+            <div style={{ display: "flex", gap: 32, flexWrap: "wrap" }}>
+              {[
+                { icon: "📋", label: "Full Fee Schedule", desc: "Per subject, per term, all year groups" },
+                { icon: "💳", label: "Payment Plans", desc: "Flexible monthly and termly options" },
+                { icon: "👨‍👩‍👧‍👦", label: "Sibling Discounts", desc: "Special rates for families enrolling multiple children" },
+              ].map((item) => (
+                <div key={item.label} style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
+                  <div
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 12,
+                      background: `${t.gold}18`,
+                      border: `1px solid ${t.gold}44`,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 20,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {item.icon}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: t.white, marginBottom: 3 }}>{item.label}</div>
+                    <div style={{ fontSize: 13, color: "rgba(255,255,255,.5)", lineHeight: 1.5 }}>{item.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              className="als-btn-gold"
+              onClick={() => goTo("/enrollment/fees")}
+              style={{ fontSize: 15, padding: "14px 34px", flexShrink: 0 }}
+            >
+              View Fee Details <ArrowRight size={16} />
+            </button>
+          </motion.div>
+        </div>
+      </section>
 
       <section
         style={{

@@ -6,7 +6,7 @@ const { Pool } = pg;
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
+    "DATABASE_URL must be set. Example: postgresql://user:pass@host:5432/dbname\nSet the DATABASE_URL environment variable before starting the server.",
   );
 }
 
