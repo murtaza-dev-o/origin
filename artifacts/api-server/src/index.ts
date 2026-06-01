@@ -1,5 +1,6 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import { pool } from "@workspace/db";
 
 const rawPort = process.env["PORT"] ?? "3001";
 
@@ -34,7 +35,7 @@ process.on("unhandledRejection", (reason) => {
     logger.warn("DATABASE_URL not set — skipping DB seed (server will start without DB)");
   }
 
-  app.listen(port, (err) => {
+  const server = app.listen(port, (err) => {
     if (err) {
       logger.error({ err }, "Error listening on port");
       process.exit(1);
@@ -42,4 +43,26 @@ process.on("unhandledRejection", (reason) => {
 
     logger.info({ port }, "Server listening");
   });
+
+  // Graceful shutdown: close HTTP server and DB pool
+  const shutdown = async (signal: string) => {
+    try {
+      logger.info({ signal }, "Shutdown requested");
+      server.close(() => logger.info("HTTP server closed"));
+      try {
+        await pool.end();
+        logger.info("DB pool closed");
+      } catch (dbErr) {
+        logger.error({ err: dbErr }, "Error closing DB pool");
+      }
+      // allow logger to flush
+      setTimeout(() => process.exit(0), 200);
+    } catch (err) {
+      logger.fatal({ err }, "Graceful shutdown failed");
+      setTimeout(() => process.exit(1), 200);
+    }
+  };
+
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on("SIGINT", () => shutdown("SIGINT"));
 })();

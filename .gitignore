@@ -50,3 +50,5 @@ Thumbs.db
 
 # Local runtime logs
 server.log
+api-server.log
+payload.json

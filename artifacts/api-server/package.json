@@ -16,6 +16,8 @@
     "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2",
+    "helmet": "^7",
+    "express-rate-limit": "^6",
     "drizzle-orm": "^0.45.2",
     "express": "^5",
     "pino": "^9",
