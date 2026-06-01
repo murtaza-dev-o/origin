@@ -17,6 +17,7 @@ import { B, formatTime, relativeDay } from "@/lib/brand";
 import {
   DashboardLayout, StatCard, Card, Pill, GoldButton, inputStyle,
 } from "@/components/DashboardLayout";
+import { SkeletonGrid } from "@/lib/smooth";
 
 /* ─── Helpers ─────────────────────────────────── */
 function fillDays(data: Array<{ day: string; count: number }>, days: number) {
@@ -294,16 +295,9 @@ export default function TeacherDashboard() {
       )}
 
       {isLoading ? (
-        <Card>
-          <div style={{ padding: 8 }}>
-            <div style={{ fontWeight: 800, color: B.navy, fontSize: 16, marginBottom: 6 }}>
-              Loading your teaching workspace...
-            </div>
-            <div style={{ color: B.muted, fontSize: 14 }}>
-              We are gathering your courses, student activity, and class schedule.
-            </div>
-          </div>
-        </Card>
+        <div style={{ display: "grid", gap: 18 }}>
+          <SkeletonGrid count={5} />
+        </div>
       ) : isError || !data ? (
         <Card>
           <div style={{ padding: 8 }}>

@@ -25,6 +25,7 @@ import {
 import { useGetAdminDashboard } from "@workspace/api-client-react";
 import { B, formatDateTime } from "@/lib/brand";
 import { DashboardLayout, StatCard, Card, Pill } from "@/components/DashboardLayout";
+import { SkeletonGrid } from "@/lib/smooth";
 
 export default function AdminDashboard() {
   const dash = useGetAdminDashboard();
@@ -46,16 +47,9 @@ export default function AdminDashboard() {
         }
       `}</style>
       {isLoading ? (
-        <Card>
-          <div style={{ padding: 8 }}>
-            <div style={{ fontWeight: 800, color: B.navy, fontSize: 16, marginBottom: 6 }}>
-              Loading your admin overview...
-            </div>
-            <div style={{ color: B.muted, fontSize: 14 }}>
-              We are gathering academy-wide enrollment, application, and performance metrics.
-            </div>
-          </div>
-        </Card>
+        <div style={{ display: "grid", gap: 18 }}>
+          <SkeletonGrid count={5} />
+        </div>
       ) : isError || !data ? (
         <Card>
           <div style={{ padding: 8 }}>
