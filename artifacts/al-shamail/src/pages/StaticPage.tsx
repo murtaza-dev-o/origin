@@ -20,7 +20,7 @@ export function StaticPageShell({
   tag,
   children,
 }: {
-  title: string;
+  title: ReactNode;
   tag?: string;
   children: ReactNode;
 }) {
@@ -101,9 +101,9 @@ export function StaticPageShell({
       <main style={{ maxWidth: 980, margin: "0 auto", padding: "56px 28px 72px" }}>
         <div style={{ textAlign: "center", marginBottom: 34 }}>
           {tag ? (
-            <div style={{ fontSize: 12, fontWeight: 800, color: B.gold, textTransform: "uppercase", letterSpacing: ".14em", marginBottom: 12 }}>
-              {tag}
-            </div>
+            <div style={{ display: "inline-block", transform: "translateX(-8px)", fontSize: 12, fontWeight: 800, color: B.gold, textTransform: "uppercase", letterSpacing: ".14em", marginBottom: 12 }}>
+                {tag}
+              </div>
           ) : null}
           <h1 style={{ fontSize: "clamp(30px, 4.2vw, 46px)", fontWeight: 900, color: B.navy, fontFamily: "'Playfair Display', serif", margin: 0 }}>{title}</h1>
         </div>

@@ -635,8 +635,8 @@ export default function Home() {
                 </div>
               ) : null}
             </div>
-            <button type="button" className="als-nav-pill" onClick={() => goTo("/about")}>
-              About
+            <button type="button" className="als-nav-pill" onClick={() => goTo("/courses-info")}>
+              Courses
             </button>
             <div style={{ position: "relative" }}>
               <button
@@ -678,8 +678,8 @@ export default function Home() {
                 </div>
               ) : null}
             </div>
-            <button type="button" className="als-nav-pill" onClick={() => goTo("/courses-info")}>
-              Courses
+            <button type="button" className="als-nav-pill" onClick={() => goTo("/about")}>
+              About
             </button>
             <button type="button" className="als-nav-pill" onClick={() => goTo("/contact")}>
               Contact

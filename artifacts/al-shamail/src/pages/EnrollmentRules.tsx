@@ -2,7 +2,14 @@ import { StaticPageShell } from "@/pages/StaticPage";
 
 export default function EnrollmentRules() {
   return (
-    <StaticPageShell title="Rules & Regulations" tag="Enrollment">
+    <StaticPageShell
+      title={
+        <div style={{ display: "inline-block", transform: "translateX(14px)" }}>
+          Rules <span style={{ fontFamily: "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif", fontWeight: 700, fontStyle: "normal", verticalAlign: "middle" }}>&</span> Regulations
+        </div>
+      }
+      tag="Enrollment"
+    >
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
         {[
           { t: "Attendance", d: "Students are expected to attend the majority of scheduled live sessions. Parents should notify absences via the portal." },
