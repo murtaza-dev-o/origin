@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRoute, Link, useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -91,7 +91,25 @@ function AddLessonPanel({
     title: "", description: "", kind: defaultKind,
     videoUrl: "", content: "", durationMinutes: "10", xpReward: "20",
   });
+  const [videoFileName, setVideoFileName] = useState("");
+  const [videoObjectUrl, setVideoObjectUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
+
+  const importVideoFile = (file?: File) => {
+    if (!file) return;
+    if (!file.type.startsWith("video/")) {
+      window.alert("Please select a video file.");
+      return;
+    }
+    if (videoObjectUrl) {
+      URL.revokeObjectURL(videoObjectUrl);
+    }
+    const nextUrl = URL.createObjectURL(file);
+    setVideoObjectUrl(nextUrl);
+    setVideoFileName(file.name);
+    set("videoUrl", nextUrl);
+  };
 
   return (
     <div style={{ background: `${B.gold}0A`, border: `1.5px dashed ${B.gold}88`, borderRadius: 16, padding: 20, marginBottom: 14 }}>
@@ -123,7 +141,45 @@ function AddLessonPanel({
         <textarea placeholder="Short description" value={form.description} onChange={(e) => set("description", e.target.value)} style={{ ...inputStyle, minHeight: 56, resize: "vertical" }}/>
 
         {form.kind === "video" ? (
-          <input placeholder="Video URL (YouTube or .mp4)" value={form.videoUrl} onChange={(e) => set("videoUrl", e.target.value)} style={inputStyle}/>
+          <div style={{ display: "grid", gap: 8 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10, alignItems: "center" }}>
+              <input placeholder="Video URL (YouTube or .mp4)" value={form.videoUrl} onChange={(e) => set("videoUrl", e.target.value)} style={inputStyle}/>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                style={{
+                  border: `1.5px solid ${B.light}`,
+                  borderRadius: 10,
+                  padding: "10px 14px",
+                  background: B.white,
+                  color: B.navy,
+                  cursor: "pointer",
+                  fontWeight: 700,
+                  fontSize: 13,
+                }}
+              >
+                Import
+              </button>
+            </div>
+            {videoFileName ? (
+              <div style={{ fontSize: 12, color: B.muted }}>
+                Imported from PC: <strong style={{ color: B.navy }}>{videoFileName}</strong>
+              </div>
+            ) : null}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="video/*"
+              style={{ display: "none" }}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                importVideoFile(file);
+                if (e.target) {
+                  e.target.value = "";
+                }
+              }}
+            />
+          </div>
         ) : (
           <div>
             <div style={{ fontSize: 11, color: B.muted, marginBottom: 6 }}>
