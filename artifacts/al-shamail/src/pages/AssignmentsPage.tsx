@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect, useCallback } from "react";
-import { useGetCurrentUser } from "@workspace/api-client-react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useGetCurrentUser, useListCourses } from "@workspace/api-client-react";
 import { B } from "@/lib/brand";
 import { toast } from "@/hooks/use-toast";
 import { DashboardLayout, Card, PrimaryButton, GoldButton, Pill } from "@/components/DashboardLayout";
@@ -33,16 +33,39 @@ interface Assignment {
   createdBy: string;
   createdByName: string;
   createdAt: string;
+  courseId: string;
+  courseName: string;
   assignedTo: string[];
   submissions: Submission[];
 }
 
 const STORAGE_KEY = "al_shamail_assignments_v1";
 
+const COURSE_OPTIONS = [
+  { id: "english", name: "English" },
+  { id: "math", name: "Math" },
+  { id: "science", name: "Science" },
+  { id: "history", name: "History" },
+];
+
+function getCourseName(courseId: string) {
+  return COURSE_OPTIONS.find((course) => course.id === courseId)?.name ?? "General";
+}
+
+function findCourseName(courseId: string, options: { id: string; name: string }[]) {
+  return options.find((course) => course.id === courseId)?.name ?? getCourseName(courseId);
+}
+
 function loadAssignments(): Assignment[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw) as Assignment[];
+    if (raw) {
+      return (JSON.parse(raw) as Assignment[]).map((assignment) => ({
+        ...assignment,
+        courseId: assignment.courseId ?? "english",
+        courseName: assignment.courseName ?? getCourseName(assignment.courseId ?? "english"),
+      }));
+    }
   } catch {}
   return [
     {
@@ -54,6 +77,8 @@ function loadAssignments(): Assignment[] {
       createdBy: "teacher-demo",
       createdByName: "Mr. Al-Rashid",
       createdAt: new Date().toISOString(),
+      courseId: "math",
+      courseName: "Math",
       assignedTo: [],
       submissions: [],
     },
@@ -66,6 +91,8 @@ function loadAssignments(): Assignment[] {
       createdBy: "teacher-demo",
       createdByName: "Ms. Khalil",
       createdAt: new Date().toISOString(),
+      courseId: "science",
+      courseName: "Science",
       assignedTo: [],
       submissions: [],
     },
@@ -122,9 +149,25 @@ function typeBadge(t: AssignmentType) {
   const map: Record<AssignmentType, { label: string; color: string }> = {
     homework: { label: "Homework", color: B.navy },
     test:     { label: "Test",     color: "#7c3aed" },
-    project:  { label: "Project",  color: "#0369a1" },
+    project:  { label: "Classwork", color: "#0369a1" },
   };
   return map[t];
+}
+
+function assignmentTypeLabel(t: AssignmentType) {
+  return t === "project" ? "Classwork" : t === "homework" ? "Homework" : "Test";
+}
+
+function groupAssignmentsByCourse(assignments: Assignment[]) {
+  const groups = new Map<string, { courseId: string; courseName: string; items: Assignment[] }>();
+  assignments.forEach((assignment) => {
+    const courseId = assignment.courseId ?? "english";
+    const courseName = assignment.courseName ?? getCourseName(courseId);
+    const group = groups.get(courseId) ?? { courseId, courseName, items: [] };
+    group.items.push(assignment);
+    groups.set(courseId, group);
+  });
+  return Array.from(groups.values()).sort((a, b) => a.courseName.localeCompare(b.courseName));
 }
 
 function ImageUploader({
@@ -217,19 +260,28 @@ function ImageUploader({
 
 function AssignmentForm({
   initial,
+  courseOptions,
   onSave,
   onCancel,
 }: {
   initial?: Partial<Assignment>;
+  courseOptions: { id: string; name: string }[];
   onSave: (data: Omit<Assignment, "id" | "createdAt" | "createdBy" | "createdByName" | "submissions">) => void;
   onCancel: () => void;
 }) {
   const [title, setTitle] = useState(initial?.title ?? "");
   const [desc, setDesc] = useState(initial?.description ?? "");
   const [type, setType] = useState<AssignmentType>(initial?.type ?? "homework");
+  const [courseId, setCourseId] = useState(initial?.courseId ?? courseOptions[0]?.id ?? COURSE_OPTIONS[0].id);
+  useEffect(() => {
+    if (!initial && courseOptions.length > 0) {
+      setCourseId(courseOptions[0].id);
+    }
+  }, [courseOptions, initial]);
+
   const [due, setDue] = useState(
     initial?.dueDate
-      ? initial.dueDate.slice(0, 10)
+      ? initial?.dueDate.slice(0, 10)
       : new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10),
   );
 
@@ -258,15 +310,23 @@ function AssignmentForm({
             style={{ ...inp, marginTop: 6, cursor: "pointer" }}>
             <option value="homework">Homework</option>
             <option value="test">Test</option>
-            <option value="project">Project</option>
+            <option value="project">Classwork</option>
           </select>
         </div>
         <div>
           <label style={{ fontSize: 11, fontWeight: 700, color: B.muted, textTransform: "uppercase", letterSpacing: ".08em" }}>
-            Due Date
+            Subject
           </label>
-          <input type="date" value={due} onChange={(e) => setDue(e.target.value)}
-            style={{ ...inp, marginTop: 6 }} />
+          <select value={courseId} onChange={(e) => setCourseId(e.target.value)}
+            style={{ ...inp, marginTop: 6, cursor: "pointer" }}>
+            {courseOptions.length > 0 ? (
+              courseOptions.map((course) => (
+                <option key={course.id} value={course.id}>{course.name}</option>
+              ))
+            ) : (
+              <option value="">No courses available</option>
+            )}
+          </select>
         </div>
       </div>
 
@@ -292,7 +352,15 @@ function AssignmentForm({
         <GoldButton
           onClick={() => {
             if (!title.trim()) return;
-            onSave({ title: title.trim(), description: desc.trim(), type, dueDate: new Date(due).toISOString(), assignedTo: [] });
+            onSave({
+            title: title.trim(),
+            description: desc.trim(),
+            type,
+            dueDate: new Date(due).toISOString(),
+            courseId,
+            courseName: findCourseName(courseId, courseOptions),
+            assignedTo: [],
+          });
           }}
         >
           <CheckCircle size={14} /> Save Assignment
@@ -558,6 +626,16 @@ export default function AssignmentsPage() {
   const [viewSubmission, setViewSubmission] = useState<{ sub: Submission; asgn: Assignment } | null>(null);
   const [viewFeedback, setViewFeedback] = useState<{ sub: Submission; title: string } | null>(null);
   const [filterType, setFilterType] = useState<"all" | AssignmentType>("all");
+  const [expandedCourseId, setExpandedCourseId] = useState<string | null>(null);
+
+  const coursesQuery = useListCourses();
+  const courseOptions = useMemo(() => {
+    const items = coursesQuery.data?.items ?? COURSE_OPTIONS;
+    return items.map((course: any) => ({
+      id: String(course.id),
+      name: course.subject || course.title || course.name || `Course ${course.id}`,
+    }));
+  }, [coursesQuery.data?.items]);
 
   const userId = (user as any)?.id ?? "current-user";
   const fullName = `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || "Student";
@@ -621,15 +699,15 @@ export default function AssignmentsPage() {
         return { ...a, submissions: [...filtered, sub] };
       }));
       const assignment = assignments.find((a) => a.id === assignmentId);
-      const assignmentTypeLabel = assignment?.type ?? "assignment";
-      const notificationText = `${fullName} submitted ${assignmentTypeLabel} work for ${assignment?.title ?? "an assignment"}`;
+      const assignmentLabel = assignment ? assignmentTypeLabel(assignment.type) : "assignment";
+      const notificationText = `${fullName} submitted ${assignmentLabel} for ${assignment?.title ?? "an assignment"}`;
       pushSubmissionNotification(notificationText);
       setUploadImageFor(null);
       setUploadImage("");
       toast({
         title: "Submission sent",
         description: assignment
-          ? `Successfully submitted ${assignment.type} 👍`
+          ? `Successfully submitted ${assignmentLabel} 👍`
           : "Submission sent 👍",
       });
     },
@@ -712,13 +790,14 @@ export default function AssignmentsPage() {
   const visibleAssignments = assignments.filter(
     (a) => filterType === "all" || a.type === filterType,
   );
+  const groupedAssignments = groupAssignmentsByCourse(visibleAssignments);
 
   return (
     <DashboardLayout
       title="Assignments"
       subtitle={
         isStudent
-          ? "Your homework, tests, and projects"
+          ? "Your homework, tests, and classwork"
           : isTeacher
           ? "Manage assignments and review submissions"
           : "Assignments — admin view"
@@ -736,6 +815,7 @@ export default function AssignmentsPage() {
           <Card title={editId ? "Edit Assignment" : "Create Assignment"}>
             <AssignmentForm
               initial={editId ? assignments.find((a) => a.id === editId) : undefined}
+              courseOptions={courseOptions}
               onSave={(data) => editId ? updateAssignment(editId, data) : createAssignment(data)}
               onCancel={() => { setShowCreate(false); setEditId(null); }}
             />
@@ -760,7 +840,13 @@ export default function AssignmentsPage() {
               transition: "all .15s",
             }}
           >
-            {t === "all" ? "All" : t.charAt(0).toUpperCase() + t.slice(1) + "s"}
+            {t === "all"
+              ? "All"
+              : t === "homework"
+              ? "Homework"
+              : t === "test"
+              ? "Test"
+              : "Classwork"}
           </button>
         ))}
         <span style={{ marginLeft: "auto", fontSize: 12, color: B.muted, alignSelf: "center" }}>
@@ -780,297 +866,342 @@ export default function AssignmentsPage() {
           </div>
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {visibleAssignments.map((a) => {
-            const mySubmission = isStudent
-              ? a.submissions.find((s) => s.studentId === userId)
-              : undefined;
-            const dp = duePill(a.dueDate, mySubmission?.status);
-            const tb = typeBadge(a.type);
-            const isExpanded = expandedId === a.id;
-            const submissionCount = a.submissions.length;
-            const pendingCount = a.submissions.filter((s) => s.status === "submitted").length;
-
+        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+          {groupedAssignments.map((group) => {
+            const isOpen = expandedCourseId === group.courseId;
             return (
-              <div
-                key={a.id}
-                style={{
-                  background: B.white, borderRadius: 18,
-                  border: `1px solid ${B.line}`,
-                  boxShadow: "0 6px 18px rgba(27,43,94,.05)",
-                  overflow: "hidden",
-                  transition: "box-shadow .2s",
-                }}
-              >
-                <div
+              <div key={group.courseId} style={{ borderRadius: 20, overflow: "hidden", border: `1px solid ${B.line}` }}>
+                <button
+                  type="button"
+                  onClick={() => setExpandedCourseId(isOpen ? null : group.courseId)}
                   style={{
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 14,
                     padding: "18px 20px",
-                    display: "flex", alignItems: "flex-start", gap: 14,
+                    background: B.white,
+                    border: "none",
                     cursor: "pointer",
                   }}
-                  onClick={() => setExpandedId(isExpanded ? null : a.id)}
                 >
-                  <div style={{
-                    width: 42, height: 42, borderRadius: 12, flexShrink: 0,
-                    background: `${tb.color}14`,
-                    border: `1px solid ${tb.color}28`,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    color: tb.color,
-                  }}>
-                    <ClipboardList size={18} />
-                  </div>
-
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                      <span style={{ fontWeight: 800, fontSize: 15, color: B.navy }}>{a.title}</span>
-                      <Pill color={tb.color}>{tb.label}</Pill>
-                      <span style={{
-                        fontSize: 11, fontWeight: 700, padding: "3px 9px",
-                        borderRadius: 99, background: `${dp.color}14`,
-                        border: `1px solid ${dp.color}44`, color: dp.color,
-                      }}>
-                        {dp.color === B.error && <AlertTriangle size={10} style={{ marginRight: 4, verticalAlign: "middle" }} />}
-                        {dp.label}
-                      </span>
-                    </div>
-                    <div style={{ fontSize: 12, color: B.muted, marginTop: 4 }}>
-                      {a.description.slice(0, 100)}{a.description.length > 100 ? "…" : ""}
-                    </div>
-                    {!isStudent && (
-                      <div style={{ fontSize: 11, color: B.muted, marginTop: 5 }}>
-                        <span style={{ fontWeight: 700, color: B.navy }}>{submissionCount}</span> submission{submissionCount !== 1 ? "s" : ""}
-                        {pendingCount > 0 && (
-                          <span style={{ marginLeft: 6, color: B.warning, fontWeight: 700 }}>
-                            · {pendingCount} awaiting review
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-                    {isStudent && mySubmission?.status === "returned" && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setViewFeedback({ sub: mySubmission, title: a.title });
-                        }}
-                        style={{
-                          padding: "6px 12px", borderRadius: 9,
-                          background: `${B.success}14`, color: B.success,
-                          fontWeight: 700, fontSize: 12, cursor: "pointer",
-                          display: "flex", alignItems: "center", gap: 5, fontFamily: "inherit",
-                          border: `1px solid ${B.success}44`,
-                        }}
-                      >
-                        <MessageSquare size={12} /> View Feedback
-                      </button>
-                    )}
-
-                    {(isAdmin || isTeacher) && (
-                      <>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setEditId(a.id); setShowCreate(false); }}
-                          style={{
-                            width: 32, height: 32, borderRadius: 8, border: `1px solid ${B.line}`,
-                            background: B.offW, cursor: "pointer", display: "flex",
-                            alignItems: "center", justifyContent: "center", color: B.muted,
-                          }}
-                        ><Pencil size={13} /></button>
-                        {isAdmin && (
-                          <button
-                            onClick={(e) => { e.stopPropagation(); deleteAssignment(a.id); }}
-                            style={{
-                              width: 32, height: 32, borderRadius: 8, border: `1px solid #fecaca`,
-                              background: "#fef2f2", cursor: "pointer", display: "flex",
-                              alignItems: "center", justifyContent: "center", color: B.error,
-                            }}
-                          ><Trash2 size={13} /></button>
-                        )}
-                      </>
-                    )}
-
-                    <div style={{ color: B.muted }}>
-                      {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                    </div>
-                  </div>
-                </div>
-
-                {isExpanded && (
-                  <div style={{
-                    borderTop: `1px solid ${B.line}`,
-                    padding: "20px",
-                    background: B.offW2,
-                  }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1, minWidth: 0 }}>
                     <div style={{
-                      fontSize: 13, color: B.text, lineHeight: 1.7,
-                      marginBottom: 18, padding: "14px 16px",
-                      background: B.white, borderRadius: 12, border: `1px solid ${B.line}`,
+                      width: 44, height: 44, borderRadius: 14,
+                      background: `${B.navy}12`, display: "flex",
+                      alignItems: "center", justifyContent: "center",
+                      color: B.navy,
+                      flexShrink: 0,
                     }}>
-                      {a.description || "No instructions provided."}
+                      <ClipboardList size={20} />
                     </div>
-
-                    <div style={{ fontSize: 11, color: B.muted, marginBottom: 16 }}>
-                      Posted by <strong>{a.createdByName}</strong> · Due {new Date(a.dueDate).toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontWeight: 800, color: B.navy, fontSize: 15 }}>{group.courseName}</div>
+                      <div style={{ fontSize: 12, color: B.muted, marginTop: 2 }}>
+                        {group.items.length} {group.items.length === 1 ? "assignment" : "assignments"}
+                      </div>
                     </div>
+                  </div>
+                  <div style={{ color: B.muted, display: "flex", alignItems: "center" }}>
+                    {isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                  </div>
+                </button>
 
-                    {isStudent && (
-                      <div>
-                        {!mySubmission ? (
-                          <>
-                            {uploadImageFor === a.id ? (
-                              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                                <ImageUploader onImage={setUploadImage} />
-                                <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-                                  <button
-                                    onClick={() => { setUploadImageFor(null); setUploadImage(""); }}
-                                    style={{
-                                      padding: "9px 14px", border: `1px solid ${B.line}`,
-                                      borderRadius: 9, background: B.offW, color: B.muted,
-                                      fontWeight: 600, fontSize: 13, cursor: "pointer", fontFamily: "inherit",
-                                    }}
-                                  >Cancel</button>
-                                  <PrimaryButton onClick={() => submitWork(a.id)} disabled={!uploadImage}>
-                                    <Send size={13} /> Submit
-                                  </PrimaryButton>
-                                </div>
-                              </div>
-                            ) : (
-                              <GoldButton onClick={() => setUploadImageFor(a.id)}>
-                                <Upload size={13} /> Upload & Submit
-                              </GoldButton>
-                            )}
-                          </>
-                        ) : (
-                          <div style={{
-                            display: "flex", alignItems: "center", gap: 10,
-                            padding: "12px 16px", borderRadius: 12,
-                            background: mySubmission.status === "returned"
-                              ? `${B.success}10` : `${B.navy}10`,
-                            border: `1px solid ${mySubmission.status === "returned"
-                              ? B.success + "44" : B.navy + "44"}`,
-                            flexWrap: "wrap",
-                          }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                              {mySubmission.status === "returned"
-                                ? <CheckCircle size={15} style={{ color: B.success }} />
-                                : <Clock size={15} style={{ color: B.navy }} />}
-                              <span style={{
-                                fontWeight: 700, fontSize: 13,
-                                color: mySubmission.status === "returned" ? B.success : B.navy,
-                              }}>
-                                {mySubmission.status === "returned"
-                                  ? "Graded — tap 'View Feedback' to see your result"
-                                  : "Submitted — awaiting teacher review"}
-                              </span>
-                            </div>
+                {isOpen && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 14, padding: "18px 20px", background: B.offW2 }}>
+                    {group.items.map((a) => {
+                      const mySubmission = isStudent
+                        ? a.submissions.find((s) => s.studentId === userId)
+                        : undefined;
+                      const dp = duePill(a.dueDate, mySubmission?.status);
+                      const tb = typeBadge(a.type);
+                      const isExpanded = expandedId === a.id;
+                      const submissionCount = a.submissions.length;
+                      const pendingCount = a.submissions.filter((s) => s.status === "submitted").length;
+
+                      return (
+                        <div
+                          key={a.id}
+                          style={{
+                            background: B.white, borderRadius: 18,
+                            border: `1px solid ${B.line}`,
+                            boxShadow: "0 6px 18px rgba(27,43,94,.05)",
+                            overflow: "hidden",
+                            transition: "box-shadow .2s",
+                          }}
+                        >
+                          <div
+                            style={{
+                              padding: "18px 20px",
+                              display: "flex", alignItems: "flex-start", gap: 14,
+                              cursor: "pointer",
+                            }}
+                            onClick={() => setExpandedId(isExpanded ? null : a.id)}
+                          >
                             <div style={{
-                              width: 48, height: 48, borderRadius: 8, overflow: "hidden",
-                              border: `1px solid ${B.line}`, marginLeft: "auto",
+                              width: 42, height: 42, borderRadius: 12, flexShrink: 0,
+                              background: `${tb.color}14`,
+                              border: `1px solid ${tb.color}28`,
+                              display: "flex", alignItems: "center", justifyContent: "center",
+                              color: tb.color,
                             }}>
-                              <img src={mySubmission.imageDataUrl} alt="preview"
-                                style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                              <ClipboardList size={18} />
+                            </div>
+
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                                <span style={{ fontWeight: 800, fontSize: 15, color: B.navy }}>{a.title}</span>
+                                <Pill color={tb.color}>{tb.label}</Pill>
+                                <span style={{
+                                  fontSize: 11, fontWeight: 700, padding: "3px 9px",
+                                  borderRadius: 99, background: `${dp.color}14`,
+                                  border: `1px solid ${dp.color}44`, color: dp.color,
+                                }}>
+                                  {dp.color === B.error && <AlertTriangle size={10} style={{ marginRight: 4, verticalAlign: "middle" }} />}
+                                  {dp.label}
+                                </span>
+                              </div>
+                              <div style={{ fontSize: 12, color: B.muted, marginTop: 4 }}>
+                                {a.description.slice(0, 100)}{a.description.length > 100 ? "…" : ""}
+                              </div>
+                              {!isStudent && (
+                                <div style={{ fontSize: 11, color: B.muted, marginTop: 5 }}>
+                                  <span style={{ fontWeight: 700, color: B.navy }}>{submissionCount}</span> submission{submissionCount !== 1 ? "s" : ""}
+                                  {pendingCount > 0 && (
+                                    <span style={{ marginLeft: 6, color: B.warning, fontWeight: 700 }}>
+                                      · {pendingCount} awaiting review
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                              {isStudent && mySubmission?.status === "returned" && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setViewFeedback({ sub: mySubmission, title: a.title });
+                                  }}
+                                  style={{
+                                    padding: "6px 12px", borderRadius: 9,
+                                    background: `${B.success}14`, color: B.success,
+                                    fontWeight: 700, fontSize: 12, cursor: "pointer",
+                                    display: "flex", alignItems: "center", gap: 5, fontFamily: "inherit",
+                                    border: `1px solid ${B.success}44`,
+                                  }}
+                                >
+                                  <MessageSquare size={12} /> View Feedback
+                                </button>
+                              )}
+
+                              {(isAdmin || isTeacher) && (
+                                <>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); setEditId(a.id); setShowCreate(false); }}
+                                    style={{
+                                      width: 32, height: 32, borderRadius: 8, border: `1px solid ${B.line}`,
+                                      background: B.offW, cursor: "pointer", display: "flex",
+                                      alignItems: "center", justifyContent: "center", color: B.muted,
+                                    }}
+                                  ><Pencil size={13} /></button>
+                                  {isAdmin && (
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); deleteAssignment(a.id); }}
+                                      style={{
+                                        width: 32, height: 32, borderRadius: 8, border: `1px solid #fecaca`,
+                                        background: "#fef2f2", cursor: "pointer", display: "flex",
+                                        alignItems: "center", justifyContent: "center", color: B.error,
+                                      }}
+                                    ><Trash2 size={13} /></button>
+                                  )}
+                                </>
+                              )}
+
+                              <div style={{ color: B.muted }}>
+                                {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                              </div>
                             </div>
                           </div>
-                        )}
-                      </div>
-                    )}
 
-                    {(isTeacher || isAdmin) && (
-                      <div>
-                        <div style={{
-                          fontSize: 13, fontWeight: 700, color: B.navy,
-                          marginBottom: 10,
-                        }}>
-                          Submissions ({a.submissions.length})
-                        </div>
-                        {a.submissions.length === 0 ? (
-                          <div style={{
-                            fontSize: 13, color: B.muted, padding: "16px",
-                            textAlign: "center", background: B.white,
-                            borderRadius: 10, border: `1px solid ${B.line}`,
-                          }}>
-                            No submissions yet
-                          </div>
-                        ) : (
-                          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                            {a.submissions.map((sub) => (
-                              <div
-                                key={sub.id}
-                                style={{
-                                  display: "flex", alignItems: "center", gap: 12,
-                                  padding: "12px 14px", background: B.white,
-                                  borderRadius: 12, border: `1px solid ${B.line}`,
-                                }}
-                              >
-                                <div style={{
-                                  width: 44, height: 44, borderRadius: 8, overflow: "hidden",
-                                  border: `1px solid ${B.line}`, flexShrink: 0,
-                                }}>
-                                  <img src={sub.imageDataUrl} alt=""
-                                    style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                                </div>
-
-                                <div style={{ flex: 1, minWidth: 0 }}>
-                                  <div style={{ fontWeight: 700, fontSize: 13, color: B.navy }}>
-                                    {sub.studentName}
-                                  </div>
-                                  <div style={{ fontSize: 11, color: B.muted, marginTop: 1 }}>
-                                    {new Date(sub.submittedAt).toLocaleString()}
-                                  </div>
-                                </div>
-
-                                {sub.status === "returned" ? (
-                                  <span style={{
-                                    fontSize: 11, fontWeight: 700, padding: "3px 9px",
-                                    borderRadius: 99, background: `${B.success}14`,
-                                    border: `1px solid ${B.success}44`, color: B.success,
-                                  }}>
-                                    Graded{sub.grade ? ` · ${sub.grade}` : ""}
-                                  </span>
-                                ) : (
-                                  <span style={{
-                                    fontSize: 11, fontWeight: 700, padding: "3px 9px",
-                                    borderRadius: 99, background: `${B.warning}14`,
-                                    border: `1px solid ${B.warning}44`, color: B.warning,
-                                  }}>
-                                    Awaiting Review
-                                  </span>
-                                )}
-
-                                <button
-                                  onClick={() => setViewSubmission({ sub, asgn: a })}
-                                  style={{
-                                    padding: "7px 12px", border: "none", borderRadius: 9,
-                                    background: `linear-gradient(135deg, ${B.navy}, ${B.navyL})`,
-                                    color: B.white, fontWeight: 700, fontSize: 12,
-                                    cursor: "pointer", display: "flex", alignItems: "center",
-                                    gap: 5, fontFamily: "inherit",
-                                  }}
-                                >
-                                  <Eye size={12} />
-                                  {sub.status === "returned" ? "View" : "Review"}
-                                </button>
-                                <button
-                                  onClick={() => deleteSubmission(a.id, sub.id)}
-                                  style={{
-                                    padding: "7px 12px", borderRadius: 9,
-                                    border: `1px solid ${B.line}`,
-                                    background: B.offW, color: B.error,
-                                    display: "flex", alignItems: "center", gap: 5,
-                                    fontWeight: 700, fontSize: 12, cursor: "pointer",
-                                    fontFamily: "inherit",
-                                  }}
-                                >
-                                  <Trash2 size={12} />
-                                  Delete
-                                </button>
+                          {isExpanded && (
+                            <div style={{
+                              borderTop: `1px solid ${B.line}`,
+                              padding: "20px",
+                              background: B.offW2,
+                            }}>
+                              <div style={{
+                                fontSize: 13, color: B.text, lineHeight: 1.7,
+                                marginBottom: 18, padding: "14px 16px",
+                                background: B.white, borderRadius: 12, border: `1px solid ${B.line}`,
+                              }}>
+                                {a.description || "No instructions provided."}
                               </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
+
+                              <div style={{ fontSize: 11, color: B.muted, marginBottom: 16 }}>
+                                Posted by <strong>{a.createdByName}</strong> · Due {new Date(a.dueDate).toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+                              </div>
+
+                              {isStudent && (
+                                <div>
+                                  {!mySubmission ? (
+                                    <>
+                                      {uploadImageFor === a.id ? (
+                                        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                                          <ImageUploader onImage={setUploadImage} />
+                                          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                                            <button
+                                              onClick={() => { setUploadImageFor(null); setUploadImage(""); }}
+                                              style={{
+                                                padding: "9px 14px", border: `1px solid ${B.line}`,
+                                                borderRadius: 9, background: B.offW, color: B.muted,
+                                                fontWeight: 600, fontSize: 13, cursor: "pointer", fontFamily: "inherit",
+                                              }}
+                                            >Cancel</button>
+                                            <PrimaryButton onClick={() => submitWork(a.id)} disabled={!uploadImage}>
+                                              <Send size={13} /> Submit
+                                            </PrimaryButton>
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <GoldButton onClick={() => setUploadImageFor(a.id)}>
+                                          <Upload size={13} /> Upload & Submit
+                                        </GoldButton>
+                                      )}
+                                    </>
+                                  ) : (
+                                    <div style={{
+                                      display: "flex", alignItems: "center", gap: 10,
+                                      padding: "12px 16px", borderRadius: 12,
+                                      background: mySubmission.status === "returned"
+                                        ? `${B.success}10` : `${B.navy}10`,
+                                      border: `1px solid ${mySubmission.status === "returned"
+                                        ? B.success + "44" : B.navy + "44"}`,
+                                      flexWrap: "wrap",
+                                    }}>
+                                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                        {mySubmission.status === "returned"
+                                          ? <CheckCircle size={15} style={{ color: B.success }} />
+                                          : <Clock size={15} style={{ color: B.navy }} />}
+                                        <span style={{
+                                          fontWeight: 700, fontSize: 13,
+                                          color: mySubmission.status === "returned" ? B.success : B.navy,
+                                        }}>
+                                          {mySubmission.status === "returned"
+                                            ? "Graded — tap 'View Feedback' to see your result"
+                                            : "Submitted — awaiting teacher review"}
+                                        </span>
+                                      </div>
+                                      <div style={{
+                                        width: 48, height: 48, borderRadius: 8, overflow: "hidden",
+                                        border: `1px solid ${B.line}`, marginLeft: "auto",
+                                      }}>
+                                        <img src={mySubmission.imageDataUrl} alt="preview"
+                                          style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              {(isTeacher || isAdmin) && (
+                                <div>
+                                  <div style={{
+                                    fontSize: 13, fontWeight: 700, color: B.navy,
+                                    marginBottom: 10,
+                                  }}>
+                                    Submissions ({a.submissions.length})
+                                  </div>
+                                  {a.submissions.length === 0 ? (
+                                    <div style={{
+                                      fontSize: 13, color: B.muted, padding: "16px",
+                                      textAlign: "center", background: B.white,
+                                      borderRadius: 10, border: `1px solid ${B.line}`,
+                                    }}>
+                                      No submissions yet
+                                    </div>
+                                  ) : (
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                                      {a.submissions.map((sub) => (
+                                        <div
+                                          key={sub.id}
+                                          style={{
+                                            display: "flex", alignItems: "center", gap: 12,
+                                            padding: "12px 14px", background: B.white,
+                                            borderRadius: 12, border: `1px solid ${B.line}`,
+                                          }}>
+                                          <div style={{
+                                            width: 44, height: 44, borderRadius: 8, overflow: "hidden",
+                                            border: `1px solid ${B.line}`, flexShrink: 0,
+                                          }}>
+                                            <img src={sub.imageDataUrl} alt=""
+                                              style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                          </div>
+
+                                          <div style={{ flex: 1, minWidth: 0 }}>
+                                            <div style={{ fontWeight: 700, fontSize: 13, color: B.navy }}>
+                                              {sub.studentName}
+                                            </div>
+                                            <div style={{ fontSize: 11, color: B.muted, marginTop: 1 }}>
+                                              {new Date(sub.submittedAt).toLocaleString()}
+                                            </div>
+                                          </div>
+
+                                          {sub.status === "returned" ? (
+                                            <span style={{
+                                              fontSize: 11, fontWeight: 700, padding: "3px 9px",
+                                              borderRadius: 99, background: `${B.success}14`,
+                                              border: `1px solid ${B.success}44`, color: B.success,
+                                            }}>
+                                              Graded{sub.grade ? ` · ${sub.grade}` : ""}
+                                            </span>
+                                          ) : (
+                                            <span style={{
+                                              fontSize: 11, fontWeight: 700, padding: "3px 9px",
+                                              borderRadius: 99, background: `${B.warning}14`,
+                                              border: `1px solid ${B.warning}44`, color: B.warning,
+                                            }}>
+                                              Awaiting Review
+                                            </span>
+                                          )}
+
+                                          <button
+                                            onClick={() => setViewSubmission({ sub, asgn: a })}
+                                            style={{
+                                              padding: "7px 12px", border: "none", borderRadius: 9,
+                                              background: `linear-gradient(135deg, ${B.navy}, ${B.navyL})`,
+                                              color: B.white, fontWeight: 700, fontSize: 12,
+                                              cursor: "pointer", display: "flex", alignItems: "center",
+                                              gap: 5, fontFamily: "inherit",
+                                            }}>
+                                            <Eye size={12} />
+                                            {sub.status === "returned" ? "View" : "Review"}
+                                          </button>
+                                          <button
+                                            onClick={() => deleteSubmission(a.id, sub.id)}
+                                            style={{
+                                              padding: "7px 12px", borderRadius: 9,
+                                              border: `1px solid ${B.line}`,
+                                              background: B.offW, color: B.error,
+                                              display: "flex", alignItems: "center", gap: 5,
+                                              fontWeight: 700, fontSize: 12, cursor: "pointer",
+                                              fontFamily: "inherit",
+                                            }}>
+                                            <Trash2 size={12} />
+                                            Delete
+                                          </button>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
