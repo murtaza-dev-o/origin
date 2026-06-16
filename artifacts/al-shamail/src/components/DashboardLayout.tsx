@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   LayoutDashboard, BookOpen, Calendar, Award, Trophy,
   MessageSquare, User, LogOut, Menu as MenuIcon, X,
-  Users, ClipboardList, ChevronRight, Bell,
+  Users, ClipboardList, ChevronRight, Bell, FileText,
 } from "lucide-react";
 import {
   useGetCurrentUser, useLogout, getGetCurrentUserQueryKey,
@@ -39,6 +39,7 @@ function navForRole(role: string | undefined, isAdmin: boolean): NavItem[] {
   const common: NavItem[] = [
     { to: "/courses",     label: "Courses",     icon: <BookOpen      size={16} /> },
     { to: "/schedule",    label: "Schedule",    icon: <Calendar      size={16} /> },
+    { to: "/assignments", label: "Assignments", icon: <FileText      size={16} /> },
     { to: "/badges",      label: "Badges",      icon: <Award         size={16} /> },
     { to: "/leaderboard", label: "Leaderboard", icon: <Trophy        size={16} /> },
     {
@@ -674,7 +675,26 @@ export const inputStyle: React.CSSProperties = {
   transition: "border-color .15s",
 };
 /* ─── Header notifications bell ──────────────────── */
+const ASSIGNMENT_NOTIFICATIONS_KEY = "al_shamail_assignment_notifications_v1";
+
+function loadAssignmentNotifications() {
+  try {
+    const raw = localStorage.getItem(ASSIGNMENT_NOTIFICATIONS_KEY);
+    if (raw) return JSON.parse(raw) as string[];
+  } catch {}
+  return [];
+}
+
+function clearAssignmentNotifications() {
+  try { localStorage.removeItem(ASSIGNMENT_NOTIFICATIONS_KEY); } catch {}
+}
+
 function NotificationsBell() {
+  const me = useGetCurrentUser();
+  const user = me.data?.user;
+  const isAdmin = !!user?.isAdmin;
+  const isTeacher = !isAdmin && user?.role === "teacher";
+  const assignmentNotifications = (isAdmin || isTeacher) ? loadAssignmentNotifications() : [];
   const [, navigate] = useLocation();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -687,9 +707,11 @@ function NotificationsBell() {
       const bt = b.lastAt ? new Date(b.lastAt).getTime() : 0;
       return bt - at;
     });
-  const totalUnread = unreadConvos.reduce(
+  const totalMessageUnread = unreadConvos.reduce(
     (n, c) => n + (c.unreadCount ?? 0), 0,
   );
+  const totalAssignmentUnread = assignmentNotifications.length;
+  const totalUnread = totalMessageUnread + totalAssignmentUnread;
 
   // Close the dropdown on outside click.
   useEffect(() => {
@@ -766,7 +788,7 @@ function NotificationsBell() {
             </span>
           </div>
 
-          {unreadConvos.length === 0 ? (
+          {assignmentNotifications.length === 0 && unreadConvos.length === 0 ? (
             <div style={{
               padding: "24px 14px", textAlign: "center",
               color: B.muted, fontSize: 12,
@@ -775,10 +797,25 @@ function NotificationsBell() {
               <div style={{ fontWeight: 700, color: B.navy, marginBottom: 2 }}>
                 You're all caught up
               </div>
-              <div>New messages will appear here.</div>
+              <div>New messages and submissions will appear here.</div>
             </div>
           ) : (
             <div style={{ maxHeight: 360, overflowY: "auto" }}>
+              {assignmentNotifications.length > 0 && (
+                <div style={{ padding: "10px 14px", borderBottom: `1px solid ${B.light}` }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: B.muted, marginBottom: 8 }}>
+                    Assignment notifications
+                  </div>
+                  {assignmentNotifications.map((note, index) => (
+                    <div key={`assignment-notification-${index}`} style={{
+                      padding: "10px 12px", borderRadius: 12, background: B.offW,
+                      color: B.text, fontSize: 12, marginBottom: 8,
+                    }}>
+                      {note}
+                    </div>
+                  ))}
+                </div>
+              )}
               {unreadConvos.map((c) => (
                 <button
                   key={c.id}
